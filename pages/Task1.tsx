@@ -4,7 +4,7 @@ import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import ThemeInput from "../components/ThemeInput";
 import {useContext, useRef, useState} from "react";
 import {adaptiveLess, forTo, getRandom, range} from "../utils";
-import {ThemeContext} from "../colors";
+import {AppContext} from "../colors";
 import Table, {TableColumn, TableRow} from "../components/Table";
 
 export default function Task1() {
@@ -12,7 +12,7 @@ export default function Task1() {
     const [nValue, setNValue] = useState("");
     const refN = useRef(0);
     const [vector, setVector] = useState(null);
-    const {colorScheme, defaultStyle} = useContext(ThemeContext);
+    const {colorScheme, defaultStyle} = useContext(AppContext);
     const [error, setError] = useState(null);
 
     const generateVector = (value: string) => {

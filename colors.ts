@@ -1,17 +1,6 @@
-import React from "react";
+import React, {useRef} from "react";
 import {calculateDefaultStyle} from "./globalStyles";
-
-// export type ColorScheme = {
-//     backgroundColor:string,
-//     cardColor:string,
-//     textColor:string,
-//     secondTextColor:string,
-//     hintTextColor:string,
-//     statusBarStyle: "dark" | "light" | "inverted" | "auto",
-//     shadowColor:string,
-//     outlineColor:string,
-//     errorColor:string,
-// }
+import {GestureResponderEvent} from "react-native/Libraries/Types/CoreEventTypes";
 
 export const LightMode = {
     backgroundColor: "#f2f2f2",
@@ -26,7 +15,7 @@ export const LightMode = {
     borderColor: "black",
     scrollBarBackground: "#f9f9fd",
     scrollBarColor: "#cecece",
-    hoverColor: "#eff2f1"
+    hoverColor: "#d2d3d3"
 };
 export const DarkMode = {
     backgroundColor: "#0e0e0e",
@@ -44,4 +33,13 @@ export const DarkMode = {
     hoverColor: "#1d1d1d"
 };
 
-export const ThemeContext = React.createContext({colorScheme: LightMode, defaultStyle: calculateDefaultStyle(Number.MAX_SAFE_INTEGER)});
+
+
+export const AppContext = React.createContext(
+    {
+        colorScheme: LightMode,
+        defaultStyle: calculateDefaultStyle(Number.MAX_SAFE_INTEGER),
+        subscribeTouchEnd: (handler: ((event:GestureResponderEvent) => void)):void => {},
+        unsubscribeTouchEnd: (handler: ((event:GestureResponderEvent) => void)):void => {},
+        sendTouchEndEvent: (event:GestureResponderEvent):void => {}
+    });

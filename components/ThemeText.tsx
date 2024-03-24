@@ -1,6 +1,6 @@
 import {Text, useWindowDimensions, StyleSheet} from "react-native";
 import {adaptiveLess} from "../utils";
-import {LightMode, ThemeContext} from "../colors";
+import {LightMode, AppContext} from "../colors";
 import {useContext} from "react";
 import {DefaultProps} from "../globalStyles";
 
@@ -43,7 +43,7 @@ export const getTextStyle = (colorScheme : typeof LightMode) => {
 }
 
 export default function ThemeText({colorType, children, style, fontSizeType}:ThemeTextProps){
-    const {colorScheme, defaultStyle} = useContext(ThemeContext);
+    const {colorScheme, defaultStyle} = useContext(AppContext);
     const styles = getTextStyle(colorScheme);
 
     if(colorType == null)

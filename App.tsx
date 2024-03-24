@@ -7,9 +7,9 @@ import {
     Appearance,
     View,
     useWindowDimensions,
-    KeyboardAvoidingView
+    KeyboardAvoidingView, TouchableWithoutFeedback
 } from 'react-native';
-import {Link, NavigationContainer} from '@react-navigation/native';
+import {Link, NavigationContainer, NavigationState} from '@react-navigation/native';
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
 import HomePage from "./pages/HomePage";
 // @ts-ignore
@@ -18,15 +18,14 @@ import DarkTheme from './imgs/dark_mode.svg';
 import LightTheme from './imgs/light_mode.svg';
 // @ts-ignore
 import ArrowBack from './imgs/arrow_back.svg';
-import {useEffect, useState} from "react";
-import {DarkMode, LightMode, ThemeContext} from "./colors";
+import {useEffect, useRef, useState} from "react";
+import {DarkMode, LightMode, AppContext} from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {linking, Tasks} from "./contents";
 import {calculateDefaultStyle} from "./globalStyles";
-import ThemeText from "./components/ThemeText";
-import {RouteProp} from "@react-navigation/core/lib/typescript/src/types";
-import {adaptiveLess} from "./utils";
 import NonSelectPressable from "./components/NonSelectPressable";
+import {PartialState} from "@react-navigation/routers/lib/typescript/src/types";
+import {GestureResponderEvent} from "react-native/Libraries/Types/CoreEventTypes";
 
 const Stack = createNativeStackNavigator();
 
@@ -35,8 +34,9 @@ export default function App() {
     const [currentScheme, setCurrentScheme] = useState("light");
     const [currentPage, setCurrentPage] = useState("");
     const {height, width} = useWindowDimensions();
+    const listenersTouchEnd = useRef([]);
 
-    const toggleTheme = () => {
+    function toggleTheme() {
         if (currentScheme === "dark") {
             setColorScheme(LightMode);
             setCurrentScheme("light");
@@ -47,7 +47,8 @@ export default function App() {
             AsyncStorage.setItem("schemeMode", "dark");
         }
     }
-    const getActiveRouteName = (state): string => {
+
+    function getActiveRouteName(state: NavigationState | PartialState<NavigationState>): string {
         if (!state)
             return "";
         const route = state.routes[state?.index || 0];
@@ -56,7 +57,26 @@ export default function App() {
         }
 
         return route.name;
-    };
+    }
+
+    function sendTouchEndEvent(touchEvent: GestureResponderEvent): void {
+        console.log("XUINA");
+        listenersTouchEnd.current.forEach(handler => {
+            handler(touchEvent);
+        })
+    }
+
+    function subscribeTouchEnd(handler: (event: GestureResponderEvent) => void) {
+        listenersTouchEnd.current.push(handler);
+    }
+
+    function unsubscribeTouchEnd(handler: (event: GestureResponderEvent) => void) {
+        const index = listenersTouchEnd.current.indexOf(handler);
+        if (index === -1)
+            return;
+
+        listenersTouchEnd.current.splice(index, 1);
+    }
 
     const defaultStyle = calculateDefaultStyle(width);
 
@@ -67,7 +87,6 @@ export default function App() {
         headerStyle: {
             backgroundColor: colorScheme.cardColor,
             height: defaultStyle.fontSize_title.headerHeight,
-            // @ts-ignore
             borderBottomColor: colorScheme.outlineColor,
         },
         contentStyle: {
@@ -80,13 +99,19 @@ export default function App() {
                     paddingRight: Platform.OS === "web" ? 0 : 10,
                 }}>
                     <View style={{justifyContent: "center", height: "100%"}}>
-                        <ArrowBack height={Platform.OS === "web" ? defaultStyle.fontSize_title.backIconSize : 24} width={Platform.OS === "web" ? defaultStyle.fontSize_title.backIconSize : 24} fill={colorScheme.textColor}></ArrowBack>
+                        <ArrowBack height={Platform.OS === "web" ? defaultStyle.fontSize_title.backIconSize : 24}
+                                   width={Platform.OS === "web" ? defaultStyle.fontSize_title.backIconSize : 24}
+                                   fill={colorScheme.textColor}></ArrowBack>
                     </View>
                 </Link> : null
         ),
         headerTintColor: colorScheme.textColor,
         headerRight: () => (
-            <NonSelectPressable onPress={toggleTheme} style={{marginRight: Platform.OS === "web" ? 20 : 0, height: "100%", justifyContent: "center"}}>
+            <NonSelectPressable onPress={toggleTheme} style={{
+                marginRight: Platform.OS === "web" ? 20 : 0,
+                height: "100%",
+                justifyContent: "center"
+            }}>
                 {currentScheme === "light" ?
                     <DarkTheme height={Platform.OS === "web" ? defaultStyle.fontSize_title.themeIconSize : 24}
                                width={Platform.OS === "web" ? defaultStyle.fontSize_title.themeIconSize : 24}/> : null}
@@ -97,7 +122,7 @@ export default function App() {
         ),
     };
 
-    if(Platform.OS === "web"){
+    if (Platform.OS === "web") {
         //@ts-ignore
         screenOptions.headerTitleStyle = {
             fontSize: defaultStyle.fontSize_title.fontSize
@@ -115,9 +140,9 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        if(Platform.OS === "web"){
+        if (Platform.OS === "web") {
             let styleScrollBar = document.head.querySelector("#custom_scroll_bar");
-            if(!styleScrollBar) {
+            if (!styleScrollBar) {
                 styleScrollBar = document.createElement("style");
                 styleScrollBar.id = "custom_scroll_bar";
                 document.head.appendChild(styleScrollBar);
@@ -136,28 +161,38 @@ export default function App() {
     }, [colorScheme]);
 
     return (
-        <ThemeContext.Provider value={{colorScheme: colorScheme, defaultStyle: defaultStyle}}>
-            <KeyboardAvoidingView behavior={"padding"} style={{ flex: 1, backgroundColor: colorScheme.backgroundColor }}>
-                <NavigationContainer linking={linking}
-                    ref={(e) => {
-                        if (currentPage === "" && e)
-                            setCurrentPage(getActiveRouteName(e.getState()));
-                    }}
-                    onStateChange={(state) => {
-                        setCurrentPage(getActiveRouteName(state));
-                    }}>
-                    <Stack.Navigator screenOptions={screenOptions}>
-                        <Stack.Screen name="main" component={HomePage} options={{title: "Булевы функции | Главная"}}/>
-                        {Tasks.map((e, index) => (
-                            <Stack.Screen navigationKey={e.id} key={e.id} name={e.id} component={e.component}
-                                          options={{title: e.title + " | " + (index + 1)}}/>
-                        ))}
-                    </Stack.Navigator>
-                </NavigationContainer>
+        <AppContext.Provider value={{
+            colorScheme: colorScheme,
+            defaultStyle: defaultStyle,
+            subscribeTouchEnd: subscribeTouchEnd,
+            unsubscribeTouchEnd: unsubscribeTouchEnd,
+            sendTouchEndEvent: sendTouchEndEvent,
+        }}>
+            <KeyboardAvoidingView behavior={"padding"}
+                                  style={{flex: 1, backgroundColor: colorScheme.backgroundColor}}>
+                <Pressable onPress={sendTouchEndEvent} style={{flex: 1, cursor: "auto"}}>
+                    <NavigationContainer linking={linking}
+                                         ref={(e) => {
+                                             if (currentPage === "" && e)
+                                                 setCurrentPage(getActiveRouteName(e.getState()));
+                                         }}
+                                         onStateChange={(state) => {
+                                             setCurrentPage(getActiveRouteName(state));
+                                         }}>
+                        {/*//@ts-ignore*/}
+                        <Stack.Navigator screenOptions={screenOptions}>
+                            <Stack.Screen name="main" component={HomePage}
+                                          options={{title: "Булевы функции | Главная"}}/>
+                            {Tasks.map((e, index) => (
+                                <Stack.Screen navigationKey={e.id} key={e.id} name={e.id} component={e.component}
+                                              options={{title: e.title + " | " + (index + 1)}}/>
+                            ))}
+                        </Stack.Navigator>
+                    </NavigationContainer>
+                </Pressable>
             </KeyboardAvoidingView>
-        </ThemeContext.Provider>
+        </AppContext.Provider>
     )
         ;
 }
-
 const styles = StyleSheet.create({});

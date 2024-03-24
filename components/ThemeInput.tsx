@@ -1,8 +1,9 @@
 import {useWindowDimensions, StyleSheet, TextInput, Platform, InputModeOptions} from "react-native";
-import {ThemeContext} from "../colors";
+import {AppContext} from "../colors";
 import {useContext, useState} from "react";
 import {ColorTypes, FontSizeTypes, getTextStyle, ThemeTextProps} from "./ThemeText";
 import {KeyboardTypeOptions} from "react-native/Libraries/Components/TextInput/TextInput";
+import {NativeSyntheticEvent, NativeTouchEvent} from "react-native/Libraries/Types/CoreEventTypes";
 
 export interface ThemeInputProps extends ThemeTextProps {
     placeholder?: string,
@@ -23,7 +24,7 @@ export default function ThemeInput({
                                        notDeleteFirstZero
                                    }: ThemeInputProps) {
     const [selection, setSelection] = useState(undefined);
-    const {colorScheme, defaultStyle} = useContext(ThemeContext);
+    const {colorScheme, defaultStyle, sendTouchEndEvent} = useContext(AppContext);
     const styles = getTextStyle(colorScheme);
 
     const textChangeEvent = (text: string): void => {
@@ -56,7 +57,10 @@ export default function ThemeInput({
         fontSizeType = FontSizeTypes.normal
 
     return (
-        <TextInput selection={selection} value={typeof value !== "string" ? (value + "") : value}
+        <TextInput onPressOut={(event) => {
+            sendTouchEndEvent(event);
+        }}
+            selection={selection} value={typeof value !== "string" ? (value + "") : value}
                    onChangeText={textChangeEvent}
                    inputMode={typeInput} placeholderTextColor={colorScheme.hintTextColor} placeholder={placeholder}
                    style={[styles[colorType != null ? "text_" + colorType : "text_first"], {

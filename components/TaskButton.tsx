@@ -1,11 +1,12 @@
 import {StyleSheet, useWindowDimensions, View} from "react-native";
 import {adaptiveLess} from "../utils";
 import {useContext} from "react";
-import {ThemeContext} from "../colors";
+import {AppContext} from "../colors";
 import ThemeText, {FontSizeTypes} from "./ThemeText";
 import {Link, useNavigation} from "@react-navigation/native";
 import {linking} from "../contents";
 import {DefaultProps} from "../globalStyles";
+import CustomLink from "./CustomLink";
 
 export interface TaskButton extends DefaultProps{
     title:string,
@@ -14,7 +15,7 @@ export interface TaskButton extends DefaultProps{
 }
 
 export default function TaskButton({title, number, id}:TaskButton) {
-    const {colorScheme, defaultStyle} = useContext(ThemeContext);
+    const {colorScheme, defaultStyle} = useContext(AppContext);
     const {height, width} = useWindowDimensions();
     const navigation = useNavigation();
     const adaptiveStyles = StyleSheet.create({
@@ -45,11 +46,11 @@ export default function TaskButton({title, number, id}:TaskButton) {
         },
     });
     return (
-        <Link style={[adaptiveStyles.buttonWrapper]} to={linking.config.screens[id].path}>
+        <CustomLink style={[adaptiveStyles.buttonWrapper]} to={linking.config.screens[id].path}>
             <View style={[adaptiveStyles.buttonContainer]}>
                 <ThemeText fontSizeType={FontSizeTypes.big}>{number}</ThemeText>
                 <ThemeText fontSizeType={FontSizeTypes.buttonCard} style={{textAlign: "center"}}>{title}</ThemeText>
             </View>
-        </Link>
+        </CustomLink>
     );
 }

@@ -1,10 +1,11 @@
 import Task1 from "./pages/Task1";
 import Task2 from "./pages/Task2";
+import Task3 from "./pages/Task3";
 
 export const Tasks = [
     {title: "Построение функции", id: "task1", component: Task1},
     {title: "Остаточная функции", id: "task2", component: Task2},
-    {title: "Построение функции2", id: "task3", component: Task1},
+    {title: "Построение функции2", id: "task3", component: Task3},
     {title: "Построение функции3", id: "task4", component: Task1},
     {title: "Построение функции4", id: "task5", component: Task1},
 ]
