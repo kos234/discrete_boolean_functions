@@ -1,3 +1,22 @@
+export function binSearch<T>(findValue:T, array:T[], comparator: (a:T, b:T)=>number):number|undefined{
+    let start:number = 0;
+    let end:number = array.length - 1;
+
+    while (start <= end){
+        const mid:number = Math.floor((start + end) / 2);
+        const compRes = comparator(array[mid], findValue);
+        if(compRes === 0) {
+            return mid;
+        }
+        else if (compRes < 0)
+            start = mid + 1;
+        else
+            end = mid - 1;
+
+    }
+    return undefined;
+}
+
 export function adaptiveLess(value:number, defaultStyle:number, adaptiveStyle: Object):number {
     let keys:number[] = Object.keys(adaptiveStyle).map(key => parseInt(key)).sort((a, b) => {
         return b - a

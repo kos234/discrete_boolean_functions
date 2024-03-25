@@ -1,12 +1,11 @@
 import {StyleProp, StyleSheet, TextStyle, ViewStyle} from "react-native";
-import {adaptiveLess} from "./utils";
+import {adaptiveLess} from "./utils/utils";
 import {FontSizeTypes} from "./components/ThemeText";
 
 export interface DefaultProps{
     style?:StyleProp<ViewStyle> | StyleProp<TextStyle>,
     children?:any,
 }
-
 export function calculateDefaultStyle(width:number){
     return StyleSheet.create({
         //Margins

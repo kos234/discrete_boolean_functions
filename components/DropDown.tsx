@@ -28,7 +28,6 @@ export interface DropDown extends DefaultProps {
 
 export default function DropDown({elements, defaultValue, placeholder, isEdit, onSelect, children, style}: DropDown) {
     const {height, width} = useWindowDimensions();
-    const [current, setCurrent] = useState(defaultValue);
     const isOpen = useRef(false);
     const {colorScheme, defaultStyle, unsubscribeTouchEnd, subscribeTouchEnd} = useContext(AppContext);
 
@@ -41,11 +40,9 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
     });
 
     useEffect(() => {
-        console.log("Xq");
         subscribeTouchEnd(checkTouchEnd);
 
         return () => {
-            console.log("XI");
             unsubscribeTouchEnd(checkTouchEnd);
         }
     }, []);
@@ -70,7 +67,6 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
 
                 return;
             }
-            console.log(i);
         }
     }
 
@@ -128,13 +124,13 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
 
                 {isEdit ?
                     <ThemeInput fontSizeType={FontSizeTypes.small} style={{borderBottomWidth: null, width: "100%"}}
-                                value={current}
-                                onInput={setCurrent}
+                                value={defaultValue}
+                                onInput={onSelect}
                                 placeholder={placeholder}/>
                     :
                     <ThemeText fontSizeType={FontSizeTypes.small}
-                               colorType={current ? ColorTypes.first : ColorTypes.hint}
-                               style={{borderBottomWidth: null, width: "100%"}}>{current ? current : placeholder}</ThemeText>
+                               colorType={defaultValue ? ColorTypes.first : ColorTypes.hint}
+                               style={{borderBottomWidth: null, width: "100%"}}>{defaultValue ? defaultValue : placeholder}</ThemeText>
                 }
                 <View>
                     <Animated.View style={{flex: 1, transform: [{rotate: rotateRange}]}}>
@@ -150,18 +146,20 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                     left: 0,
                     width: "100%",
                     maxHeight: animationHeight.current,
-                    backgroundColor: colorScheme.backgroundColor
+                    backgroundColor: colorScheme.backgroundColor,
+                    zIndex: 4,
+                    elevation: 4,
                 }}>
                     <View style={{
                         borderWidth: 1,
                         borderRadius: 10,
                         borderColor: colorScheme.borderColor,
-                        height: "100%",
+                        maxHeight: 300,
                         padding: 5,
                     }}>
                         <ScrollView>
                             <FlatList data={elements} renderItem={({item}) => (
-                                <NonSelectPressable onPress={() => {onSelect(item.value); setCurrent(item.value); clickOpen()}} onHoverIn={(e) => hoverOnItem(item, 1)}
+                                <NonSelectPressable onPress={() => {onSelect(item); clickOpen()}} onHoverIn={(e) => hoverOnItem(item, 1)}
                                                     onHoverOut={(e) => hoverOnItem(item, 0)}>
                                     <Animated.View style={{
                                         paddingTop: 5,

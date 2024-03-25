@@ -1,5 +1,5 @@
 import {Text, useWindowDimensions, StyleSheet} from "react-native";
-import {adaptiveLess} from "../utils";
+import {adaptiveLess} from "../utils/utils";
 import {LightMode, AppContext} from "../colors";
 import {useContext} from "react";
 import {DefaultProps} from "../globalStyles";
@@ -8,8 +8,8 @@ export const enum ColorTypes{
     first = "first",
     second = "second",
     hint = "hint",
-    sub = "sub",
-    error = "error"
+    error = "error",
+    success = "success",
 }
 export const enum FontSizeTypes{
     big = "big",
@@ -38,6 +38,9 @@ export const getTextStyle = (colorScheme : typeof LightMode) => {
         },
         text_error:{
             color: colorScheme.errorColor,
+        },
+        text_success:{
+            color: colorScheme.successColor,
         }
     })
 }

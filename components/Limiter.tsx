@@ -1,5 +1,5 @@
 import {View, StyleSheet, ScrollView, useWindowDimensions} from "react-native";
-import {adaptiveLess} from "../utils";
+import {adaptiveLess} from "../utils/utils";
 import {DefaultProps} from "../globalStyles";
 import ThemeText from "./ThemeText";
 export default function Limiter({children, style}:DefaultProps){

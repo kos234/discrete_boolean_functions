@@ -1,6 +1,6 @@
 import {DefaultProps} from "../globalStyles";
 import {StyleSheet, useWindowDimensions, View} from "react-native";
-import {adaptiveLess} from "../utils";
+import {adaptiveLess} from "../utils/utils";
 
 export default function Table({style, children}:DefaultProps) {
 

@@ -170,6 +170,8 @@ export default function App() {
         }}>
             <KeyboardAvoidingView behavior={"padding"}
                                   style={{flex: 1, backgroundColor: colorScheme.backgroundColor}}>
+
+                {/*//@ts-ignore*/}
                 <Pressable onPress={sendTouchEndEvent} style={{flex: 1, cursor: "auto"}}>
                     <NavigationContainer linking={linking}
                                          ref={(e) => {

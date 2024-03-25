@@ -1,5 +1,5 @@
 import {StyleSheet, useWindowDimensions, View} from "react-native";
-import {adaptiveLess} from "../utils";
+import {adaptiveLess} from "../utils/utils";
 import {useContext} from "react";
 import {AppContext} from "../colors";
 import ThemeText, {FontSizeTypes} from "./ThemeText";

@@ -12,10 +12,13 @@ export const LightMode = {
     shadowColor: "#000",
     outlineColor: "#D8D8D8",
     errorColor: "red",
+    successColor: "green",
     borderColor: "black",
     scrollBarBackground: "#f9f9fd",
     scrollBarColor: "#cecece",
-    hoverColor: "#d2d3d3"
+    hoverColor: "#d2d3d3",
+    accentBackground: "#3F73EDFF",
+    accentTextColor: "white",
 };
 export const DarkMode = {
     backgroundColor: "#0e0e0e",
@@ -27,10 +30,13 @@ export const DarkMode = {
     shadowColor: "null",
     outlineColor: "null",
     errorColor: "#e64646",
+    successColor: "green",
     borderColor: "white",
     scrollBarBackground: "#2c3031",
     scrollBarColor: "#6e767b",
-    hoverColor: "#1d1d1d"
+    hoverColor: "#1d1d1d",
+    accentBackground: "rgb(0 37 125)",
+    accentTextColor: "white",
 };
 
 
