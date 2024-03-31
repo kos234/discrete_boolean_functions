@@ -4,7 +4,7 @@ import ThemeText, {ColorTypes, FontSizeTypes} from "./ThemeText";
 import ThemeInput from "./ThemeInput";
 // @ts-ignore
 import More from "../imgs/more.svg";
-import {useContext, useEffect, useRef, useState} from "react";
+import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {AppContext} from "../colors";
 import NonSelectPressable from "./NonSelectPressable";
 //@ts-ignore
@@ -14,23 +14,21 @@ import {GestureResponderEvent} from "react-native/Libraries/Types/CoreEventTypes
 export type DropDownElement = {
     key: string,
     value: any,
-    animationHover?: Animated.Value
-    interpolate?: AnimatedInterpolation
 }
 
-export interface DropDown extends DefaultProps {
-    elements: DropDownElement[],
+export interface DropDownProps extends DefaultProps {
+    readonly elements: DropDownElement[],
     defaultValue?: any,
     placeholder?: string,
     isEdit?: boolean,
-    onSelect:(item:DropDownElement) => void
+    onSelect: (item: DropDownElement) => void
 }
 
-export default function DropDown({elements, defaultValue, placeholder, isEdit, onSelect, children, style}: DropDown) {
-    const {height, width} = useWindowDimensions();
+export default function DropDown({elements, defaultValue, placeholder, isEdit, onSelect, style}: DropDownProps) {
     const isOpen = useRef(false);
     const {colorScheme, defaultStyle, unsubscribeTouchEnd, subscribeTouchEnd} = useContext(AppContext);
 
+    const refAnimations = useRef<{ animationHover: Animated.Value, interpolate: AnimatedInterpolation }[]>([])
     const parentNode = useRef();
     const animationHeight = useRef(new Animated.Value(0));
     const animationImageRotate = useRef(new Animated.Value(0));
@@ -47,22 +45,22 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
         }
     }, []);
 
-    const checkTouchEnd = (event:GestureResponderEvent):void => {
+    const checkTouchEnd = (event: GestureResponderEvent): void => {
         let nodeClick = event.target;
-        for (let i = 0; i < 100; i++){
-            if(nodeClick === parentNode.current)
+        for (let i = 0; i < 100; i++) {
+            if (nodeClick === parentNode.current)
                 return;
 
             markerCloseDropDown:{
                 //@ts-ignore
-                if(nodeClick.parentNode){
+                if (nodeClick.parentNode) {
                     //@ts-ignore
                     nodeClick = nodeClick.parentNode;
-                    if(nodeClick)
+                    if (nodeClick)
                         break markerCloseDropDown;
                 }
 
-                if(isOpen.current)
+                if (isOpen.current)
                     clickOpen();
 
                 return;
@@ -71,7 +69,7 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
     }
 
     function clickOpen() {
-        if(elements.length === 0 && !isOpen.current){
+        if (elements.length === 0 && !isOpen.current) {
             Alert.alert("Тайтл", "Сообщеие");
             return;
         }
@@ -90,21 +88,28 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
         isOpen.current = (!isOpen.current);
     }
 
-    function hoverOnItem(item: DropDownElement, to: number): void {
-        Animated.timing(item.animationHover, {
+    function hoverOnItem(itemIndex: number, to: number): void {
+        Animated.timing(refAnimations.current[itemIndex].animationHover, {
             toValue: to,
             duration: 200,
             useNativeDriver: false,
         }).start();
     }
 
-    for (let i = 0; i < elements.length; i++) {
-        if (!elements[i].animationHover) {
-            elements[i].animationHover = new Animated.Value(0);
+    const deltaAnimations = elements.length - refAnimations.current.length;
+    if(deltaAnimations < 0) {
+        refAnimations.current.splice(elements.length + deltaAnimations, -1 * deltaAnimations);
+
+    }
+
+    for(let i = 0; i < elements.length; i++){
+        if(refAnimations.current.length <= i){
+            refAnimations.current.push({animationHover: new Animated.Value(0), interpolate: null});
+            console.log("PUSH ANIM");
         }
 
-        if (!elements[i].interpolate || elements[i].interpolate._config.outputRange[0] != colorScheme.backgroundColor) {
-            elements[i].interpolate = elements[i].animationHover.interpolate({
+        if (!refAnimations.current[i].interpolate || refAnimations.current[i].interpolate._config.outputRange[0] != colorScheme.backgroundColor) {
+            refAnimations.current[i].interpolate = refAnimations.current[i].animationHover.interpolate({
                 inputRange: [0, 1],
                 outputRange: [colorScheme.backgroundColor, colorScheme.hoverColor]
             })
@@ -130,7 +135,10 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                     :
                     <ThemeText fontSizeType={FontSizeTypes.small}
                                colorType={defaultValue ? ColorTypes.first : ColorTypes.hint}
-                               style={{borderBottomWidth: null, width: "100%"}}>{defaultValue ? defaultValue : placeholder}</ThemeText>
+                               style={{
+                                   borderBottomWidth: null,
+                                   width: "100%"
+                               }}>{defaultValue ? defaultValue : placeholder}</ThemeText>
                 }
                 <View>
                     <Animated.View style={{flex: 1, transform: [{rotate: rotateRange}]}}>
@@ -158,15 +166,18 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                         padding: 5,
                     }}>
                         <ScrollView>
-                            <FlatList data={elements} renderItem={({item}) => (
-                                <NonSelectPressable onPress={() => {onSelect(item); clickOpen()}} onHoverIn={(e) => hoverOnItem(item, 1)}
-                                                    onHoverOut={(e) => hoverOnItem(item, 0)}>
+                            <FlatList data={elements} renderItem={({item, index}) => (
+                                <NonSelectPressable onPress={() => {
+                                    onSelect(item);
+                                    clickOpen()
+                                }} onHoverIn={(e) => hoverOnItem(index, 1)}
+                                                    onHoverOut={(e) => hoverOnItem(index, 0)}>
                                     <Animated.View style={{
                                         paddingTop: 5,
                                         paddingBottom: 5,
                                         paddingLeft: 15,
                                         paddingRight: 15,
-                                        backgroundColor: item.interpolate,
+                                        backgroundColor: refAnimations.current[index].interpolate,
                                     }}>
                                         <ThemeText fontSizeType={FontSizeTypes.small}>{item.value}</ThemeText>
                                     </Animated.View>

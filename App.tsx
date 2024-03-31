@@ -60,7 +60,6 @@ export default function App() {
     }
 
     function sendTouchEndEvent(touchEvent: GestureResponderEvent): void {
-        console.log("XUINA");
         listenersTouchEnd.current.forEach(handler => {
             handler(touchEvent);
         })
@@ -186,6 +185,7 @@ export default function App() {
                             <Stack.Screen name="main" component={HomePage}
                                           options={{title: "Булевы функции | Главная"}}/>
                             {Tasks.map((e, index) => (
+                                //@ts-ignore
                                 <Stack.Screen navigationKey={e.id} key={e.id} name={e.id} component={e.component}
                                               options={{title: e.title + " | " + (index + 1)}}/>
                             ))}

@@ -1,6 +1,7 @@
 import {StyleProp, StyleSheet, TextStyle, ViewStyle} from "react-native";
 import {adaptiveLess} from "./utils/utils";
 import {FontSizeTypes} from "./components/ThemeText";
+import {ViewProps} from "react-native/Libraries/Components/View/ViewPropTypes";
 
 export interface DefaultProps{
     style?:StyleProp<ViewStyle> | StyleProp<TextStyle>,

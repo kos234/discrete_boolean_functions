@@ -9,7 +9,7 @@ import {AppContext} from "../colors";
 import CustomTouchableOpacity from "../components/CustomTouchableOpacity";
 import {getRandom} from "../utils/utils";
 
-export default function Task4({style, children}: DefaultProps) {
+export default function Task4() {
     const {colorScheme, defaultStyle} = useContext(AppContext);
     const [nameFunction, setNameFunction] = useState<DropDownElement>(null);
     const [status, setStatus] = useState<{ colorType: ColorTypes, value: string }>(null);
@@ -24,6 +24,12 @@ export default function Task4({style, children}: DefaultProps) {
         {key: "1011", value: "обратная импликация"},
         {key: "0010", value: "коимпликация"},
         {key: "0100", value: "обратная коимпликация"},
+        {key: "0100", value: "переменная x"},
+        {key: "0001", value: "переменная y"},
+        {key: "1000", value: "отрицание x"},
+        {key: "0010", value: "отрицание y"},
+        {key: "0000", value: "0"},
+        {key: "1111", value: "1"},
     ]);
     const [vector, setVector] = useState(getRandomNamedVector());
 

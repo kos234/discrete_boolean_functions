@@ -58,3 +58,18 @@ export function forTo(value:number, callBack:(index:number) => any):any[] {
 export function range(value:number):number[] {
    return [...Array(value).keys()];
 }
+
+export function fastUniqueArray(array:number[]):void{
+    for(let i = 1; i < array.length; i++){
+        if(array[i - 1] === array[i]){
+            array.splice(i, 1);
+            i--;
+        }
+    }
+}
+
+export function safeToString(value:any):string{
+    if(value == null)
+        return "";
+    return value + "";
+}
