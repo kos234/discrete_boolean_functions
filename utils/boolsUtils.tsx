@@ -170,37 +170,32 @@ export function parseDNF(value: string, isDNF: boolean): UtilsReturn<BooleanForm
         let currentBooleanFormatElement: (GetArrayReturnType<BooleanFormat["storage"], {}>) = {};
         let lastKey: number | null = null; //Это переменная для последовательного сбора индекса переменной
         let isTrue: boolean = true; //Если ли отрицание
-        Поскольку парсинг идёт последовательно,
-        // let minusIgnoreCount: -1 | 0 | 1 = 0;
-        const flush = () => {
-            minusIgnoreCount--;
+        const flush = () => {//Мы накопили в буфер значения, поэтому нужно сохранить
             if (lastKey != null)
-                currentBooleanFormatElement[lastKey] = minusIgnoreCount === -1 ? isTrue : true
-            if (minusIgnoreCount === -1) {
-                minusIgnoreCount = 0;
-                isTrue = true;
-            }
+                currentBooleanFormatElement[lastKey] = isTrue
+            isTrue = true;
             lastKey = null;
         }
 
-        for (let i = 0; i < value.length; i++) {
+        for (let i = 0; i < value.length; i++) {//Последовательный парсинг
             const currentChar = value[i];
-            if (currentChar === "X" || currentChar === "x") {
+            if (currentChar === "X" || currentChar === "x") {//Если текущий символ х, то мы сохраняем значение прошлого ввода, если конечно до Х не стоит минус
                 if (lastKey === 0) {
                     res.error = `Неверный символ на ${i + 1} позиции. Ожидается число, получено "x"`
                     break markerParse;
                 }
 
-                flush();
+                if (isTrue)
+                    flush();
                 lastKey = 0;
-            } else if (currentChar >= "1" && currentChar <= "9") {
+            } else if (currentChar >= "1" && currentChar <= "9") {//После ввода Х, ожидается число
                 if (lastKey == null) {
                     res.error = `Неверный символ на ${i + 1} позиции. Ожидается "x", получено число`
                     break markerParse;
                 }
                 lastKey = lastKey * 10 + parseInt(currentChar);
                 res.value.calculateMaxPow(lastKey);
-            } else if ((isDNF && (currentChar === "V" || currentChar === "v") || (!isDNF && currentChar == "^"))) {
+            } else if ((isDNF && (currentChar === "V" || currentChar === "v") || (!isDNF && currentChar == "^"))) {//Это главная или или умножить для ДНФ или КНФ
                 if (lastKey == null) {
                     res.error = `Перед знаком ${isDNF ? "V" : "^"} на ${i + 1} позиции должна быть ${isDNF ? "конъюнкция" : "дизъюнкция"}`
                     break markerParse;
@@ -211,24 +206,27 @@ export function parseDNF(value: string, isDNF: boolean): UtilsReturn<BooleanForm
                     break markerParse;
                 }
 
-                flush();
-                res.value.storage.push(currentBooleanFormatElement);
+                flush(); //сохраним всё до знака
+                res.value.storage.push(currentBooleanFormatElement); //добавим в массив ДНФ или КНФ хранилище
                 currentBooleanFormatElement = {};
-            } else if (currentChar === "-") {
-                flush();
+            } else if (currentChar === "-") { //Отрицание
                 if (!isTrue) {
                     res.error = `Неверный символ на ${i + 1} позиции. Ожидается "x", получено "-"`
                     break markerParse;
                 }
+                flush();
                 isTrue = false;
-                minusIgnoreCount = 1;
             } else if (currentChar === " " || currentChar === "(" || currentChar === ")" || (!isDNF && (currentChar === "V" || currentChar === "v"))) {
-                //ignore
+                //Можем сколько угодно писать скобки в кнф версии, но нас они интересовать не будут, ибо нам пофиг на приоритет знаков
+                //Тоже самое с пробелами
             } else {
                 res.error = `Неверный символ на ${i + 1} позиции. Ожидается "x0-9V ", получено "${currentChar}"`
                 break markerParse;
             }
 
+            //Ввод работает так, что только знак V или ^ добавляет хранилище ДНФ или КНФ в массив, поэтому после каждого набора переменных (x1x2-x3 например)
+            //должен стоять знак V, это проверка именно это и делает
+            //Например было x1-x2 V x3, а станет x1-x2 V x3 V
             if (i + 1 === value.length && (lastKey != null || (lastKey == null && !isTrue))) {
                 value += " " + (isDNF ? "V" : "^");
             }
@@ -237,15 +235,16 @@ export function parseDNF(value: string, isDNF: boolean): UtilsReturn<BooleanForm
     return res;
 }
 
+//Это для проверки ДНФ или КНФ. На вход подаётся индекс значения функции, количество аргументов и ДНФ или КНФ
 export function getValueINDNF(row: number, n: number, booleanFormat: BooleanFormat): number {
     if (booleanFormat.storage.length === 0)
         return 0;
 
     let ans = booleanFormat.getMainDefault();
-    for (let q = 0; q < booleanFormat.storage.length; q++) {
+    for (let q = 0; q < booleanFormat.storage.length; q++) {//Идём по всем хранилищам ДНФ или КНФ
         let currentAns = booleanFormat.getInnerDefault();
         let currentDNF = booleanFormat.storage[q];
-        for (let i = 0; i < n; i++) {
+        for (let i = 0; i < n; i++) {//Тупо подставляем туда значения 0 или 1
             if (currentDNF[i + 1] == null)
                 continue;
             currentAns = booleanFormat.innerOperation(currentAns, Math.floor((row / (1 << n - i - 1)) % 2) === +currentDNF[i + 1])
@@ -257,12 +256,13 @@ export function getValueINDNF(row: number, n: number, booleanFormat: BooleanForm
     return +ans;
 }
 
+//Это 8 и 9 задание. На вход вектор, что мы получим днф или кнф и цветовая схема приложения(нужно для отрисовки)
 export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, colorScheme: typeof LightMode) {
-    const fontSize = FontSizeTypes.normal;
+    const fontSize = FontSizeTypes.normal;//Это бы удалить, но мне лень
     const ans: ReactNode[] = []
     const n = Math.log2(vector.length);
     for (let row = 0; row < vector.length; row++) {
-        if (vector[row] === "1") {
+        if (vector[row] === "1") { //это проверка на то, что по текущему значению функции можно построить ДНФ или КНФ, иначе скип
             if (!isDNF)
                 continue;
         } else {
@@ -273,7 +273,7 @@ export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, c
         }
 
         for (let i = 0; i < n; i++) {
-            // ans.push(<ThemeText>{Math.floor((row / (1 << n - i - 1)) % 2) !== +isDNF ? "-" : ""}</ThemeText>)
+            //Тупо перебор всех вариантов значений, а страшная фигня снизу это тупо красивый вывод для реакта
             //@ts-ignore
             ans.push(
                 <ThemeText fontSizeType={fontSize} style={{position: "relative"}}>x
@@ -293,8 +293,6 @@ export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, c
             if (i + 1 !== n && !isDNF) {
                 ans.push(<ThemeText fontSizeType={fontSize}>V</ThemeText>)
             }
-
-            // localAns.push(((Math.floor((row / (1 << n - i - 1)) % 2) !== +isDNF) ? "-" : "") + "x" + <ThemeText fontSizeType={FontSizeTypes.sub}>{(i + 1)}</ThemeText>);
         }
 
         if (isDNF) {
@@ -310,11 +308,16 @@ export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, c
     return ans;
 }
 
-export class ArgumentIndex {
+export class ArgumentIndex {//Это класс с инструментами для 10 - 12 задач
+    //Условимся, что f(011) = 1, где 011 это НАБОР аргументов
+    //Набор можно представить как число в двоичной записи, например 011(2) = 3(10)
+
+    //В 12 задаче куча Map, масок и тд, сохраняются они в строку, а эта функция достаёт их от туда, причём 9 считается за прочерк (см лекцию минизация Мак-Классики)
     public static parseString(matrix: string): number[] {
         return matrix.split("").map(fastParse0or1)
     }
 
+    //Проверка эквивалентности двух булевых наборов с учётом маски штрих(9)
     public static equal(first: number[], second: number[]): boolean {
         if (first.length != second.length)
             return false;
@@ -330,17 +333,19 @@ export class ArgumentIndex {
         return isEqual;
     }
 
+    //Представить число как двоичный набор
     public static toMatrixIndex(index: number, n: number): number[] {
         const ans: number[] = Array(n).fill(0);
 
         for (let write = n - 1; index !== 0; write--) {
-            ans[write] = index & 1;
+            ans[write] = index & 1; //Достаём последний бит числа N раз
             index >>= 1;
         }
 
         return ans;
     }
 
+    //Представить набор как число
     public static toNumberIndex(indexes: number[]): number {
         let ans: number = 0;
         for (let i = 0; i < indexes.length; i++) {
@@ -350,6 +355,8 @@ export class ArgumentIndex {
         return ans;
     }
 
+    //Для проверки монотонности и тд есть необходимость проверить соседей, но зачем проверять что-то по два раза?
+    //Поэтому будет только перебор больших соседей, например наборы 000, 001 и 011. Для набора 000 мы проверим соседа 001, а для 001 не будем проверять 000, только 011
     public static getBigNeighbors(indexes: number[]): { differentIndex: number, value: number[] }[] {
         let ans: { differentIndex: number, value: number[] }[] = [];
         for (let i = 0; i < indexes.length; i++) {
@@ -358,8 +365,9 @@ export class ArgumentIndex {
             ans.push(
                 {
                     differentIndex: i,
+                    //Тут мы просто вырезаем текущую переменную и заменяем её на 1
                     value: [
-                        ...indexes.slice(0, i),
+                        ...indexes.slice(0, i), //Это оператор spread, это фигня тупо выкидывет из массива элементы так, как будто мы их написали ручками
                         1,
                         ...indexes.slice(i + 1, indexes.length)
                     ]
@@ -371,26 +379,28 @@ export class ArgumentIndex {
     }
 }
 
+//Это задача 10
 export function checkPreFullClases(vector: string): { t0: boolean, t1: boolean, s: boolean, l: boolean, m: boolean } {
     const res = {t0: true, t1: true, s: true, l: true, m: true};
     const n = Math.log2(vector.length);
-    res.t0 = vector[0] === "0";
-    res.t1 = vector[vector.length - 1] === "1";
+    res.t0 = vector[0] === "0"; //Ну это база
+    res.t1 = vector[vector.length - 1] === "1";//Ну это база
 
-    // checkS
+    // Проверка самодвойственности, ну тоже дефолт
     for (let i = 0; i < vector.length / 2; i++) {
         if (vector[i] === vector[vector.length - 1 - i]) {
             res.s = false;
-            break;// checkS;
+            break;
         }
     }
     // end
 
-    // checkM
+    // Проверка монотонности. Меньшему соседу ставится <= аргумент
     for (let i = 0; i < vector.length; i++) {
-        const checkMatrix = ArgumentIndex.getBigNeighbors(ArgumentIndex.toMatrixIndex(i, n));
+        const checkMatrix = ArgumentIndex.getBigNeighbors(ArgumentIndex.toMatrixIndex(i, n)); //Это индекс в набор, а потом его больших соседей
 
         for (let q = 0; q < checkMatrix.length; q++) {
+            //Можно как строки проверить, но я не доверяю JS
             if (fastParse0or1(vector[i]) > fastParse0or1(vector[ArgumentIndex.toNumberIndex(checkMatrix[q].value)])) {
                 res.m = false;
                 break;// checkM;
@@ -399,21 +409,23 @@ export function checkPreFullClases(vector: string): { t0: boolean, t1: boolean, 
     }
     // end
 
-    // checkL
+    // Проверка на линейность, эта фигня строит полином Жегалкина как мы делали, но треугольник не уплывает вниз, а всегда прижат к верхней линии
     const arrLinear: number[][] = [];
 
     for (let i = 0; i < vector.length; i++) {
         arrLinear.push([])
         for (let q = 0; q < vector.length - i; q++) {
-            if (i === 0) {
+            if (i === 0) {//Первый проход тупо загнать вектор значений
                 arrLinear[i].push(fastParse0or1(vector[q]));
-            } else {
+            } else {//А это уже тоже самое что мы делали на паре, сравнивали два элемента через +
                 arrLinear[i].push(+(arrLinear[i - 1][q] !== arrLinear[i - 1][q + 1]));
             }
         }
     }
 
-    for (let i = 0; i < vector.length; i++) {
+    for (let i = 0; i < vector.length; i++) {//На парах мы смотрели по диагонали, а тут по верхней линии
+        //Короче если тут стоит 1, значит дальше мы смотрим какие переменные принимают 1, чтобы записать их в полиноме
+        //log2 мы получаем то, сколько переменных принимают 1 в текущем наборе. Если непонятно почему это работает, посмотрите как я представил число в виде набора и наоборот в ArgumentIndex
         if (arrLinear[i][0] === 1 && !Number.isInteger(Math.log2(i))) {
             res.l = false;
             break;// checkL;
@@ -425,33 +437,35 @@ export function checkPreFullClases(vector: string): { t0: boolean, t1: boolean, 
     return res;
 }
 
+//12 задача
 export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMode): UtilsReturn<ReactNode[]> {
     const res: UtilsReturn<ReactNode[]> = {error: null, value: []};
     const n = Math.log2(vector.length);
 
     markerCalc:{
-        const mapOnes: Map<number, string[]> = new Map<number, string[]>(); //карта конечных масок
-        let dataUsageMasks: Map<string, number> = new Map<string, number>(); //карта использований масок
-        for (let i = 0; i < vector.length; i++) {//запоминаем все 1
+        const mapOnes: Map<number, string[]> = new Map<number, string[]>(); //Карта конечных масок
+        let dataUsageMasks: Map<string, number> = new Map<string, number>(); //Карта использований масок
+        for (let i = 0; i < vector.length; i++) {//Запоминаем все 1
             if (vector[i] === "1") {
                 dataUsageMasks.set(ArgumentIndex.toMatrixIndex(i, n).join(""), 0)
                 mapOnes.set(i, []);
             }
         }
 
-        if (dataUsageMasks.size === 0) {
+        if (dataUsageMasks.size === 0) {//Если 1 нет, то и ДНФ нет
             res.error = "Функция никогда не равна 1, невозможно построить ДНФ!";
             break markerCalc;
         }
 
-        while (true) { //склеиваем все маски
-            const localSet: Set<string> = new Set<string>(Array.from(dataUsageMasks.keys()));
-            for (let [value] of dataUsageMasks) {
-                ArgumentIndex.getBigNeighbors(ArgumentIndex.parseString(value)).forEach(wrapper => {
-                    if (dataUsageMasks.has(wrapper.value.join(""))) {
-                        localSet.add([
+        while (true) { //Склеиваем все маски по это возможно
+            const localSet: Set<string> = new Set<string>(Array.from(dataUsageMasks.keys()));//Добавим в сет сразу всё, чтобы если что-то не склеилось, то оно всё равно осталось
+
+            for (let [value] of dataUsageMasks) {//Перебираем всё маски. [value] - тоже оператор Spread, кстати
+                ArgumentIndex.getBigNeighbors(ArgumentIndex.parseString(value)).forEach(wrapper => {//Ищём соседей
+                    if (dataUsageMasks.has(wrapper.value.join(""))) {//Проверка если ли такая маска
+                        localSet.add([ //Склеиваем
                             ...wrapper.value.slice(0, wrapper.differentIndex),
-                            9,
+                            9, //А это типа штрих (см минимизация Мак-Классики
                             ...wrapper.value.slice(wrapper.differentIndex + 1, wrapper.value.length)
                         ].join(""));
 
@@ -460,14 +474,14 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
                     }
                 });
             }
-            if (localSet.size !== dataUsageMasks.size)
+            if (localSet.size !== dataUsageMasks.size) //Если что-то склеили то обновляем
                 dataUsageMasks = new Map<string, number>(Array.from(localSet, (item) => [item, 0]));
-            else
+            else //Иначе выходим
                 break;
         }
 
         for (let [keyAns] of mapOnes) { //подсчитываем использование каждой маски
-            for (let [value] of dataUsageMasks) {
+            for (let [value] of dataUsageMasks) { //Перебираем все наборы на которых функция возвращает 1
                 if (ArgumentIndex.equal(ArgumentIndex.toMatrixIndex(keyAns, n), ArgumentIndex.parseString(value))) {
                     mapOnes.get(keyAns).push(value);
                     dataUsageMasks.set(value, dataUsageMasks.get(value) + 1)
@@ -475,9 +489,11 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
             }
         }
 
-        let ansArray: string[] = []; //массив днф масок
-        while (mapOnes.size != 0) {//просеиваем днф маски и выбираем минимально необходимые=
-            //Находим маски с максимальным использованием среди столбца с наименьшим числом масок
+        let ansArray: string[] = []; //массив днф масок для ответа
+
+        while (mapOnes.size != 0) {//Просеиваем днф маски и выбираем минимально необходимые
+
+            //Находим маски с максимальным использованием
             let maxUsage = Number.MIN_SAFE_INTEGER;
             let maxUsageKey: string[] = [];
             for (let [maksValue, maskUsage] of dataUsageMasks) {
@@ -493,29 +509,31 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
             //Выбираем маску, которую добавим в днф
             let deleteMask = maxUsageKey[0]; //По умолчанию первая маска из максимальных
             for (let i = 0; i < maxUsageKey.length - 1; i++) {//Находим маску, которая имеет 0 пересечений с другими, в противном случае без разницы какую маску использовать
-                let equalValue = 0;
-                for (let q = i + 1; q < maxUsageKey.length; q++) {
-                    for (let [keyOne, valueOne] of mapOnes) {
-                        if (valueOne.filter(item => item === maxUsageKey[i] || item === maxUsageKey[q]).length === 2) { //фильтруем маски
-                            equalValue++;
+                markerEqual: {
+                    for (let q = i + 1; q < maxUsageKey.length; q++) {
+                        for (let [keyOne, valueOne] of mapOnes) {
+                            //Оставляем только маски i и q среди набора keyOne на котором функция возвращает 1
+                            //Если есть все 2, то это пересечение и это бе
+                            if (valueOne.filter(item => item === maxUsageKey[i] || item === maxUsageKey[q]).length === 2) { //фильтруем маски
+                                break markerEqual;
+                            }
                         }
                     }
-                }
-
-                if (equalValue === 0) {
                     deleteMask = maxUsageKey[i];
                     break;
                 }
             }
             //-------------------------------------
 
-            ansArray.push(deleteMask); //Добавляем днф
-            for (let [keyOne, valueOne] of mapOnes) {
+            ansArray.push(deleteMask); //Добавляем днф, которую выбрали
+
+            for (let [keyOne, valueOne] of mapOnes) {//Перебираем все наборы на которых функция возвращает 1
                 const indexDeleteMask = valueOne.indexOf(deleteMask);
                 // console.log("find", masksForDelete, "index", indexDeleteMask);
                 if (indexDeleteMask === -1)
                     continue
 
+                //Обновляем количество использований
                 for (let i = 0; i < valueOne.length + 1; i++) {
                     const deleteUsageKey = i === 0 ? deleteMask : valueOne[i - 1];
                     const tmpUsage = dataUsageMasks.get(deleteUsageKey);
@@ -524,10 +542,13 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
                     else
                         dataUsageMasks.set(deleteUsageKey, tmpUsage - 1);
                 }
+
+                //Удаляем все наборы, которые закрывает маска
                 mapOnes.delete(keyOne)
             }
         }
 
+        //Строим красивую днф из масок
         for (let i = 0; i < ansArray.length; i++) {
             const currentMask = ansArray[i];
 
@@ -560,9 +581,11 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
     return res;
 }
 
+//Это просто красиво вывести таблицу значений
 export function drawTableBoolFunction(vector: string, defaultStyle: ReturnType<typeof calculateDefaultStyle>,
                                       colorScheme: typeof LightMode, addStyleToText?: (row: number, column: number) => StyleProp<TextStyle> | undefined,
                                       booleanFormat?: BooleanFormat) {
+    //НЕ ЛЕЗЬ - ОНА ТЕБЯ СОЖРЁТ!!
     const n = Math.log2(vector.length);
     if (!addStyleToText)
         addStyleToText = (row, column) => {
@@ -632,8 +655,6 @@ export function drawTableBoolFunction(vector: string, defaultStyle: ReturnType<t
             >
 
             </FlatList>
-
-
         </Table>
     )
 }
