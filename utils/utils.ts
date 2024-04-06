@@ -1,3 +1,5 @@
+import {ReactNode} from "react";
+
 export function binSearch<T>(findValue:T, array:T[], comparator: (a:T, b:T)=>number):number|undefined{
     let start:number = 0;
     let end:number = array.length - 1;
@@ -73,3 +75,9 @@ export function safeToString(value:any):string{
         return "";
     return value + "";
 }
+
+export function fastParse0or1(value:string){
+    return value === "1" ? 1 : (value === "0" ? 0 : 9)
+}
+
+export type GetArrayReturnType<T, DefaultType> = T extends () => (infer U)[] ? U : DefaultType;

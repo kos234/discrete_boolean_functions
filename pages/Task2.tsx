@@ -53,7 +53,7 @@ export default function Task2() {
     return (
         <Limiter>
             <View style={{flexDirection: "row"}}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите f(n): </ThemeText>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите f: </ThemeText>
                 <ThemeInput
                     style={{
                         marginLeft: 15,

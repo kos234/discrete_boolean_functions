@@ -3,8 +3,14 @@ import Task2 from "./pages/Task2";
 import Task3 from "./pages/Task3";
 import Task4 from "./pages/Task4";
 import Task5 from "./pages/Task5";
-import TestPage from "./pages/TestPage";
 import Task6 from "./pages/Task6";
+import Task7 from "./pages/Task7";
+import type {LinkingOptions} from "@react-navigation/native/lib/typescript/src/types";
+import Task8 from "./pages/Task8";
+import Task9 from "./pages/Task9";
+import Task10 from "./pages/Task10";
+import Task11 from "./pages/Task11";
+import Task12 from "./pages/Task12";
 
 export const Tasks = [
     {title: "Построение функции", id: "task1", component: Task1},
@@ -13,42 +19,31 @@ export const Tasks = [
     {title: "Игра. Имя функции", id: "task4", component: Task4},
     {title: "Игра. Существенные и фиктивные переменные", id: "task5", component: Task5},
     {title: "Игра. ДНФ", id: "task6", component: Task6},
-    {title: "Тест", id: "task777", component: TestPage},
+    {title: "Игра. КНФ", id: "task7", component: Task7},
+    {title: "СДНФ по вектору", id: "task8", component: Task8},
+    {title: "СКНФ по вектору", id: "task9", component: Task9},
+    {title: "Игра. Предполные классы", id: "task10", component: Task10},
+    {title: "Игра. Полные системы булевых функций", id: "task11", component: Task11},
+    {title: "ДНФ из функции", id: "task12", component: Task12},
 ]
 
-export const linking = {
-    prefixes: ['https://testTasks.test', 'testTasks://'],
-    config: {
-        screens: {
-            main: "",
-            task1: {
-                path: "/task/1",
+const link:LinkingOptions<ReactNavigation.RootParamList> = {config: undefined, prefixes: ['https://testTasks.test', 'testTasks://']};
+
+export function getLinking():LinkingOptions<ReactNavigation.RootParamList>{
+    if(link.config == undefined){
+        link.config = {
+            screens: {
+                main: "",
+            }
+        };
+
+        for(let i = 0; i < Tasks.length; i++){
+            link.config.screens[Tasks[i].id] = {
+                path: "/task/" + (i + 1),
                 initialRouteName: "/"
-            },
-            task2: {
-                path: "/task/2",
-                initialRouteName: "/"
-            },
-            task3: {
-                path: "/task/3",
-                initialRouteName: "/"
-            },
-            task4: {
-                path: "/task/4",
-                initialRouteName: "/"
-            },
-            task5: {
-                path: "/task/5",
-                initialRouteName: "/"
-            },
-            task6: {
-                path: "/task/6",
-                initialRouteName: "/"
-            },
-            task777: {
-                path: "/task/777",
-                initialRouteName: "/"
-            },
+            }
         }
-    },
-};
+    }
+
+    return link;
+}

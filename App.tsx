@@ -21,7 +21,7 @@ import ArrowBack from './imgs/arrow_back.svg';
 import {useEffect, useRef, useState} from "react";
 import {DarkMode, LightMode, AppContext} from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {linking, Tasks} from "./contents";
+import {getLinking, Tasks} from "./contents";
 import {calculateDefaultStyle} from "./globalStyles";
 import NonSelectPressable from "./components/NonSelectPressable";
 import {PartialState} from "@react-navigation/routers/lib/typescript/src/types";
@@ -35,6 +35,10 @@ export default function App() {
     const [currentPage, setCurrentPage] = useState("");
     const {height, width} = useWindowDimensions();
     const listenersTouchEnd = useRef([]);
+
+    console.log("link", getLinking());
+    console.log("link", getLinking());
+    console.log("link", getLinking());
 
     function toggleTheme() {
         if (currentScheme === "dark") {
@@ -93,7 +97,7 @@ export default function App() {
         },
         headerLeft: () => (
             currentPage !== "" && currentPage !== "main" ?
-                <Link to={linking.config.screens[currentPage].initialRouteName} style={{
+                <Link to={getLinking().config.screens[currentPage].initialRouteName} style={{
                     paddingLeft: Platform.OS === "web" ? 15 : 0,
                     paddingRight: Platform.OS === "web" ? 0 : 10,
                 }}>
@@ -172,7 +176,7 @@ export default function App() {
 
                 {/*//@ts-ignore*/}
                 <Pressable onPress={sendTouchEndEvent} style={{flex: 1, cursor: "auto"}}>
-                    <NavigationContainer linking={linking}
+                    <NavigationContainer linking={getLinking()}
                                          ref={(e) => {
                                              if (currentPage === "" && e)
                                                  setCurrentPage(getActiveRouteName(e.getState()));

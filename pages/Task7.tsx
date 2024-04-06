@@ -5,21 +5,21 @@ import ThemeInput from "../components/ThemeInput";
 import {adaptiveLess, safeToString} from "../utils/utils";
 import React, {useContext, useRef, useState} from "react";
 import {AppContext} from "../colors";
-import {DNF, drawTableBoolFunction, getRandomVector, getValueINDNF, parseDNF} from "../utils/boolsUtils";
+import {drawTableBoolFunction, getRandomVector, getValueINDNF, KNF, parseDNF} from "../utils/boolsUtils";
 import {DropDownElement} from "../components/DropDown";
 import CustomTouchableOpacity from "../components/CustomTouchableOpacity";
 import useJSONState from "../utils/useJSONState";
 
 const Task5ElemStatuses: DropDownElement[] = [{key: "false", value: "фиктивная"}, {key: "true", value: "существенная"}]
-export default function Task6() {
+export default function Task7() {
     const {height, width} = useWindowDimensions();
     const {colorScheme, defaultStyle} = useContext(AppContext);
     const [nValue, setNValue] = useState<number>();
     const [vector, setVector] = useState<string>(null);
-    const [errors, commitErrors] = useJSONState({vector: null, DNF: null});
+    const [errors, commitErrors] = useJSONState({vector: null, KNF: null});
     const [message, setMessage] = useState<{ colorType: ColorTypes, value: string }>(null);
     const [rawDNF, setRawDNF] = useState("");
-    const dnfRef = useRef<DNF>(null);
+    const knfRef = useRef<KNF>(null);
 
     function generateVector(value: string) {
         const n = parseInt(value);
@@ -33,20 +33,20 @@ export default function Task6() {
     function onInputDNF(value: string) {
         setRawDNF(value);
 
-        const res = parseDNF(value, true);
-        console.log("DNF", res.value);
-        errors.current.DNF = res.error;
+        const res = parseDNF(value, false);
+        console.log("KNF", res.value);
+        errors.current.KNF = res.error;
         commitErrors();
 
         if (res.error)
             return;
         if (nValue < res.value.getMaxPow()) {
-            errors.current.DNF = `Количество переменных в ДНФ больше чем в векторе - ${res.value.getMaxPow()}`;
+            errors.current.KNF = `Количество переменных в ДНФ больше чем в векторе - ${res.value.getMaxPow()}`;
             commitErrors();
             return;
         }
 
-        dnfRef.current = res.value;
+        knfRef.current = res.value;
     }
 
     function onClick() {
@@ -58,16 +58,16 @@ export default function Task6() {
         }
 
         if(rawDNF.length === 0){
-            errors.current.DNF = "Введите ДНФ!";
+            errors.current.KNF = "Введите КНФ!";
             commitErrors();
         }
 
-        if(errors.current.DNF || errors.current.vector)
+        if(errors.current.KNF || errors.current.vector)
             return;
 
         for (let i = 0; i < 1 << nValue; i++) {
-            if (getValueINDNF(i, nValue, dnfRef.current) + "" !== vector[i]) {
-                setMessage({value: "Неправильный ДНФ!", colorType: ColorTypes.error});
+            if (getValueINDNF(i, nValue, knfRef.current) + "" !== vector[i]) {
+                setMessage({value: "Неправильный КНФ!", colorType: ColorTypes.error});
                 return;
             }
         }
@@ -97,7 +97,7 @@ export default function Task6() {
                 </View>
 
                 <View style={[{flexDirection: "row"}, defaultStyle.marginTopNormal]}>
-                    <ThemeText fontSizeType={FontSizeTypes.normal}>Введите ДНФ: </ThemeText>
+                    <ThemeText fontSizeType={FontSizeTypes.normal}>Введите КНФ: </ThemeText>
                     <ThemeInput
                         style={{
                             marginLeft: 15,
@@ -105,17 +105,17 @@ export default function Task6() {
                             width: adaptiveLess(width, null, {"478": 2})
                         }}
                         value={rawDNF} onInput={onInputDNF}
-                        placeholder={"ДНФ"}
+                        placeholder={"КНФ"}
                         fontSizeType={FontSizeTypes.normal}/>
                 </View>
 
-                {errors.current.DNF ? <View style={defaultStyle.marginTopSmall}>
+                {errors.current.KNF ? <View style={defaultStyle.marginTopSmall}>
                     <ThemeText colorType={ColorTypes.error}
-                               fontSizeType={FontSizeTypes.error}>{errors.current.DNF}</ThemeText>
+                               fontSizeType={FontSizeTypes.error}>{errors.current.KNF}</ThemeText>
                 </View> : null}
 
                 {message ? <>
-                    {drawTableBoolFunction(vector, defaultStyle, colorScheme, undefined, dnfRef.current)}
+                    {drawTableBoolFunction(vector, defaultStyle, colorScheme, undefined, knfRef.current)}
                     <View style={defaultStyle.marginTopSmall}>
                         <ThemeText colorType={message.colorType}
                                    fontSizeType={FontSizeTypes.error}>{message.value}</ThemeText>
