@@ -51,12 +51,11 @@ export default function Task2() {
     }
 
     return (
-        <Limiter>
+        <Limiter notScroll={true} styleMain={{height: height - defaultStyle.fontSize_title.headerHeight}}>
             <View style={{flexDirection: "row"}}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите f: </ThemeText>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите&nbsp;f:&nbsp;&nbsp;</ThemeText>
                 <ThemeInput
                     style={{
-                        marginLeft: 15,
                         flex: adaptiveLess(width, 0, {"478": 1}),
                         width: adaptiveLess(width, null, {"478": 2})
                     }}
@@ -70,15 +69,15 @@ export default function Task2() {
                            fontSizeType={FontSizeTypes.error}>{errorVector}</ThemeText>
             </View> : null}
 
-            <View style={[defaultStyle.marginTopNormal, {flexDirection: "row", zIndex: 3}]}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Выберите аргумент: </ThemeText>
+            <View style={[defaultStyle.marginTopNormal, {flexDirection: "row", zIndex: 3, flexWrap: "wrap"}]}>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Выберите&nbsp;аргумент:&nbsp;&nbsp;</ThemeText>
                 <DropDown elements={refArguments.current} onSelect={selectArgument}
                           defaultValue={rawArgument ? refArguments.current.find((item) => item.key === rawArgument).value : null}
                           placeholder={"аргумент"}></DropDown>
             </View>
 
-            <View style={[defaultStyle.marginTopNormal, {flexDirection: "row", zIndex: 2}]}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Выберите остаточную: </ThemeText>
+            <View style={[defaultStyle.marginTopNormal, {flexDirection: "row", zIndex: 2, flexWrap: "wrap"}]}>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Выберите&nbsp;остаточную:&nbsp;&nbsp;</ThemeText>
                 <DropDown elements={refResiduals.current} onSelect={selectResidual} defaultValue={rawResidual}
                           placeholder={"остаточная"}></DropDown>
             </View>
@@ -100,11 +99,12 @@ export default function Task2() {
                         </ThemeText>
                     </View>
 
-                    {drawTableBoolFunction(rawVector, defaultStyle, colorScheme, (row, column) => {
-                            if(binSearch<number>(row-1, residualIndexes, (a, b) => a - b) != undefined)
-                                return {fontWeight: "bold"}
-                        return {}
-                    })}
+
+                    {/*{drawTableBoolFunction(rawVector, defaultStyle, colorScheme, (row, column) => {*/}
+                    {/*        if(binSearch<number>(row-1, residualIndexes, (a, b) => a - b) != undefined)*/}
+                    {/*            return {fontWeight: "bold"}*/}
+                    {/*    return {}*/}
+                    {/*})}*/}
                 </>
                 : null}
 

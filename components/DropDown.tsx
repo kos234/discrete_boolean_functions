@@ -1,4 +1,13 @@
-import {Alert, Animated, Easing, FlatList, ScrollView, useWindowDimensions, View} from "react-native";
+import {
+    Alert,
+    Animated,
+    Easing,
+    FlatList,
+    InteractionManager, Platform,
+    ScrollView,
+    useWindowDimensions,
+    View
+} from "react-native";
 import {DefaultProps} from "../globalStyles";
 import ThemeText, {ColorTypes, FontSizeTypes} from "./ThemeText";
 import ThemeInput from "./ThemeInput";
@@ -26,12 +35,14 @@ export interface DropDownProps extends DefaultProps {
 
 export default function DropDown({elements, defaultValue, placeholder, isEdit, onSelect, style}: DropDownProps) {
     const isOpen = useRef(false);
+    const ignoreClick = useRef(false);
     const {colorScheme, defaultStyle, unsubscribeTouchEnd, subscribeTouchEnd} = useContext(AppContext);
 
     const refAnimations = useRef<{ animationHover: Animated.Value, interpolate: AnimatedInterpolation }[]>([])
     const parentNode = useRef();
-    const animationHeight = useRef(new Animated.Value(0));
+    const animationDropDown = useRef(new Animated.Value(0));
     const animationImageRotate = useRef(new Animated.Value(0));
+    const refCloseAfterClickAnywhere = useRef<ReturnType<typeof setTimeout | null>>(null);
     const rotateRange = animationImageRotate.current.interpolate({
         inputRange: [0, 1],
         outputRange: ['0deg', '180deg']
@@ -45,47 +56,38 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
         }
     }, []);
 
-    const checkTouchEnd = (event: GestureResponderEvent): void => {
-        let nodeClick = event.target;
-        for (let i = 0; i < 100; i++) {
-            if (nodeClick === parentNode.current)
-                return;
-
-            markerCloseDropDown:{
-                //@ts-ignore
-                if (nodeClick.parentNode) {
-                    //@ts-ignore
-                    nodeClick = nodeClick.parentNode;
-                    if (nodeClick)
-                        break markerCloseDropDown;
-                }
-
-                if (isOpen.current)
-                    clickOpen();
-
-                return;
-            }
+    const checkTouchEnd = (): void => {
+        clearInterval(refCloseAfterClickAnywhere.current);
+        console.log("isopen", isOpen.current)
+        if(ignoreClick.current){
+            ignoreClick.current = false;
+            return
         }
+        if (isOpen.current)
+            refCloseAfterClickAnywhere.current = setTimeout(() => {
+                console.log("WTF")
+                clickOpen();
+            }, 100);
     }
 
     function clickOpen() {
         if (elements.length === 0 && !isOpen.current) {
-            Alert.alert("Тайтл", "Сообщеие");
             return;
         }
-        Animated.timing(animationHeight.current, {
-            toValue: (isOpen.current ? 0 : 300),
+        Animated.timing(animationDropDown.current, {
+            toValue: (isOpen.current ? 0 : 1),
             duration: 200,
-            useNativeDriver: false,
-            easing: Easing.out(Easing.ease)
+            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease)
         }).start();
         Animated.timing(animationImageRotate.current, {
             toValue: (isOpen.current ? 0 : 1),
             duration: 200,
             useNativeDriver: true,
-            easing: Easing.out(Easing.ease)
+            easing: Easing.inOut(Easing.ease)
         }).start();
         isOpen.current = (!isOpen.current);
+        console.log("isOpen.current", isOpen.current);
     }
 
     function hoverOnItem(itemIndex: number, to: number): void {
@@ -97,15 +99,13 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
     }
 
     const deltaAnimations = elements.length - refAnimations.current.length;
-    if(deltaAnimations < 0) {
+    if (deltaAnimations < 0) {
         refAnimations.current.splice(elements.length + deltaAnimations, -1 * deltaAnimations);
-
     }
 
-    for(let i = 0; i < elements.length; i++){
-        if(refAnimations.current.length <= i){
+    for (let i = 0; i < elements.length; i++) {
+        if (refAnimations.current.length <= i) {
             refAnimations.current.push({animationHover: new Animated.Value(0), interpolate: null});
-            console.log("PUSH ANIM");
         }
 
         if (!refAnimations.current[i].interpolate || refAnimations.current[i].interpolate._config.outputRange[0] != colorScheme.backgroundColor) {
@@ -123,17 +123,20 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
             width: 200,
             justifyContent: "center",
             zIndex: 3,
-            elevation: 3
         }, style]}>
-            <NonSelectPressable style={{flexDirection: "row", paddingLeft: 15, paddingRight: 15}} onPress={clickOpen}>
-
+            <NonSelectPressable style={{flexDirection: "row", paddingLeft: 5, paddingRight: 5}} onPress={(item) => {
+                if(Platform.OS === "web")
+                    ignoreClick.current = true;
+                clearInterval(refCloseAfterClickAnywhere.current);
+                clickOpen();
+            }}>
                 {isEdit ?
-                    <ThemeInput fontSizeType={FontSizeTypes.small} style={{borderBottomWidth: null, width: "100%"}}
+                    <ThemeInput fontSizeType={FontSizeTypes.normal} style={{borderBottomWidth: null, width: "100%"}}
                                 value={defaultValue}
                                 onInput={onSelect}
                                 placeholder={placeholder}/>
                     :
-                    <ThemeText fontSizeType={FontSizeTypes.small}
+                    <ThemeText fontSizeType={FontSizeTypes.normal}
                                colorType={defaultValue ? ColorTypes.first : ColorTypes.hint}
                                style={{
                                    borderBottomWidth: null,
@@ -141,7 +144,7 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                                }}>{defaultValue ? defaultValue : placeholder}</ThemeText>
                 }
                 <View>
-                    <Animated.View style={{flex: 1, transform: [{rotate: rotateRange}]}}>
+                    <Animated.View style={{flex: 1, justifyContent: "center", transform: [{rotate: rotateRange}]}}>
                         <More style={{flex: 1}} fill={colorScheme.textColor} height={24} width={24}/>
                     </Animated.View>
                 </View>
@@ -153,7 +156,8 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                     top: 0,
                     left: 0,
                     width: "100%",
-                    maxHeight: animationHeight.current,
+                    transform: [{scaleY: animationDropDown.current}],
+                    transformOrigin: "top center",
                     backgroundColor: colorScheme.backgroundColor,
                     zIndex: 4,
                     elevation: 4,
@@ -162,14 +166,13 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                         borderWidth: 1,
                         borderRadius: 10,
                         borderColor: colorScheme.borderColor,
-                        maxHeight: 300,
                         padding: 5,
                     }}>
                         <ScrollView>
-                            <FlatList data={elements} renderItem={({item, index}) => (
-                                <NonSelectPressable onPress={() => {
-                                    onSelect(item);
-                                    clickOpen()
+                            {elements.map((value: DropDownElement, index: number) => (
+                                <NonSelectPressable key={"key" + index} onPress={() => {
+                                    onSelect(value);
+                                    // clickOpen()
                                 }} onHoverIn={(e) => hoverOnItem(index, 1)}
                                                     onHoverOut={(e) => hoverOnItem(index, 0)}>
                                     <Animated.View style={{
@@ -179,10 +182,10 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                                         paddingRight: 15,
                                         backgroundColor: refAnimations.current[index].interpolate,
                                     }}>
-                                        <ThemeText fontSizeType={FontSizeTypes.small}>{item.value}</ThemeText>
+                                        <ThemeText fontSizeType={FontSizeTypes.normal}>{value.value}</ThemeText>
                                     </Animated.View>
                                 </NonSelectPressable>
-                            )}/>
+                            ))}
                         </ScrollView>
                     </View>
                 </Animated.View>

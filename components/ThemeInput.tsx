@@ -24,7 +24,7 @@ export default function ThemeInput({
                                        notDeleteFirstZero
                                    }: ThemeInputProps) {
     const [selection, setSelection] = useState(undefined);
-    const {colorScheme, defaultStyle, sendTouchEndEvent} = useContext(AppContext);
+    const {colorScheme, defaultStyle} = useContext(AppContext);
     const styles = getTextStyle(colorScheme);
 
     const textChangeEvent = (text: string): void => {
@@ -57,9 +57,7 @@ export default function ThemeInput({
         fontSizeType = FontSizeTypes.normal
 
     return (
-        <TextInput onPressOut={(event) => {
-            sendTouchEndEvent(event);
-        }}
+        <TextInput
             selection={selection} value={typeof value !== "string" ? (value + "") : value}
                    onChangeText={textChangeEvent}
                    inputMode={typeInput} placeholderTextColor={colorScheme.hintTextColor} placeholder={placeholder}

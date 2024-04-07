@@ -6,7 +6,6 @@ import ThemeText, {FontSizeTypes} from "./ThemeText";
 import {Link, useNavigation} from "@react-navigation/native";
 import {getLinking} from "../contents";
 import {DefaultProps} from "../globalStyles";
-import CustomLink from "./CustomLink";
 
 export interface TaskButton extends DefaultProps{
     title:string,
@@ -46,11 +45,11 @@ export default function TaskButton({title, number, id}:TaskButton) {
         },
     });
     return (
-        <CustomLink style={[adaptiveStyles.buttonWrapper]} to={getLinking().config.screens[id].path}>
+        <Link style={[adaptiveStyles.buttonWrapper]} to={getLinking().config.screens[id].path}>
             <View style={[adaptiveStyles.buttonContainer]}>
                 <ThemeText fontSizeType={FontSizeTypes.big}>{number}</ThemeText>
                 <ThemeText fontSizeType={FontSizeTypes.buttonCard} style={{textAlign: "center"}}>{title}</ThemeText>
             </View>
-        </CustomLink>
+        </Link>
     );
 }

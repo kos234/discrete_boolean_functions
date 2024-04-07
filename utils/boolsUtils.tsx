@@ -592,18 +592,18 @@ export function drawTableBoolFunction(vector: string, defaultStyle: ReturnType<t
             return undefined
         };
     return (
-        <Table style={defaultStyle.marginTopSmall}>
+        <Table style={[defaultStyle.marginTopSmall, {flex: 1}]}>
             <TableRow style={{borderBottomWidth: 2, borderBottomColor: colorScheme.textColor}}>
                 {forTo(n, (index) => (
-                    <TableColumn key={"header" + index}>
-                        <ThemeText fontSizeType={FontSizeTypes.small}
-                                   style={[{textAlign: "center"}, addStyleToText(0, index)]}>x<ThemeText
-                            fontSizeType={FontSizeTypes.sub}>{index + 1}</ThemeText></ThemeText>
+                    <TableColumn style={{justifyContent: "center"}} key={"header" + index}>
+                        <ThemeText fontSizeType={FontSizeTypes.normal} style={[{textAlign: "center"}, addStyleToText(0, index)]}>
+                            x<ThemeText fontSizeType={FontSizeTypes.sub}>{index + 1}</ThemeText>
+                        </ThemeText>
                     </TableColumn>
                 ))}
                 <TableColumn
                     style={[{borderLeftWidth: 2, borderLeftColor: colorScheme.textColor}, addStyleToText(0, n)]}>
-                    <ThemeText fontSizeType={FontSizeTypes.small} style={{textAlign: "center"}}>f</ThemeText>
+                    <ThemeText fontSizeType={FontSizeTypes.normal} style={{textAlign: "center"}}>f</ThemeText>
                 </TableColumn>
 
                 {booleanFormat ?
@@ -612,7 +612,7 @@ export function drawTableBoolFunction(vector: string, defaultStyle: ReturnType<t
                             borderLeftWidth: 2,
                             borderLeftColor: colorScheme.textColor
                         }, addStyleToText(0, n), {width: 80}]}>
-                        <ThemeText fontSizeType={FontSizeTypes.small} style={{textAlign: "center"}}>ДНФ</ThemeText>
+                        <ThemeText fontSizeType={FontSizeTypes.normal} style={{textAlign: "center"}}>ДНФ</ThemeText>
                     </TableColumn> : null
                 }
             </TableRow>
@@ -627,12 +627,12 @@ export function drawTableBoolFunction(vector: string, defaultStyle: ReturnType<t
                         <TableRow key={"row" + item}>
                             {forTo(n, (num) => (
                                 <TableColumn key={"column" + item + "_" + num}>
-                                    <ThemeText fontSizeType={FontSizeTypes.small}
+                                    <ThemeText fontSizeType={FontSizeTypes.normal}
                                                style={[{textAlign: "center"}, addStyleToText(item + 1, num)]}>{Math.floor((item / (1 << n - num - 1)) % 2)}</ThemeText>
                                 </TableColumn>
                             ))}
                             <TableColumn style={{borderLeftWidth: 2, borderLeftColor: colorScheme.textColor}}>
-                                <ThemeText fontSizeType={FontSizeTypes.small}
+                                <ThemeText fontSizeType={FontSizeTypes.normal}
                                            style={[{textAlign: "center"}, addStyleToText(item + 1, n)]}>{vector ? vector[item] : ""}</ThemeText>
                             </TableColumn>
 
@@ -642,7 +642,7 @@ export function drawTableBoolFunction(vector: string, defaultStyle: ReturnType<t
                                         borderLeftWidth: 2,
                                         borderLeftColor: colorScheme.textColor,
                                     }, addStyleToText(0, n), {width: 80}]}>
-                                    <ThemeText fontSizeType={FontSizeTypes.small}
+                                    <ThemeText fontSizeType={FontSizeTypes.normal}
                                                colorType={vector[item] === booleanFormatValue + "" ? ColorTypes.first : ColorTypes.error}
                                                style={{textAlign: "center"}}>{booleanFormatValue}</ThemeText>
                                 </TableColumn>

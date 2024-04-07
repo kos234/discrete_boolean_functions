@@ -1,4 +1,4 @@
-import {FlatList, ScrollView, StyleSheet, useWindowDimensions, View} from "react-native";
+import {FlatList, ScrollView, StyleSheet, Text, useWindowDimensions, View} from "react-native";
 import Limiter from "../components/Limiter";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import ThemeInput from "../components/ThemeInput";
@@ -7,6 +7,7 @@ import {adaptiveLess, forTo, getRandom, range} from "../utils/utils";
 import {AppContext} from "../colors";
 import Table, {TableColumn, TableRow} from "../components/Table";
 import {drawTableBoolFunction, getRandomVector} from "../utils/boolsUtils";
+import HomePage from "./HomePage";
 
 export default function Task1() {
     const {height, width} = useWindowDimensions();
@@ -23,10 +24,10 @@ export default function Task1() {
     }
 
     return (
-        <Limiter>
+        <Limiter notScroll={true} styleMain={{height: height - defaultStyle.fontSize_title.headerHeight}}>
             <View style={{flexDirection: "row"}}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите n: </ThemeText>
-                <ThemeInput style={{marginLeft: 15, flex: adaptiveLess(width, 0, {"478": 1}), width: adaptiveLess(width, null, {"478": 2})}} value={nValue} onInput={generateVector} typeInput={"numeric"} placeholder={"число"}
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите&nbsp;n:&nbsp;&nbsp;</ThemeText>
+                <ThemeInput style={{flex: adaptiveLess(width, 0, {"478": 1}), width: adaptiveLess(width, null, {"478": 2})}} value={nValue} onInput={generateVector} typeInput={"numeric"} placeholder={"число"}
                             fontSizeType={FontSizeTypes.normal}/>
             </View>
 
@@ -35,11 +36,15 @@ export default function Task1() {
                            fontSizeType={FontSizeTypes.error}>{error}</ThemeText>
             </View> : null}
 
-            {vector && nValue ? <View style={defaultStyle.marginTopNormal}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>f = ({vector})</ThemeText>
+            {vector && nValue ? <View style={[defaultStyle.marginTopNormal, {flexDirection: "row"}]}>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>f&nbsp;=&nbsp;</ThemeText>
+                <ScrollView horizontal={true}>
+                    <ThemeText>({vector})</ThemeText>
+                </ScrollView>
             </View> : null}
 
             {vector && nValue ? drawTableBoolFunction(vector, defaultStyle, colorScheme) : null}
+
         </Limiter>
     );
 }

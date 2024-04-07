@@ -45,7 +45,6 @@ export const AppContext = React.createContext(
     {
         colorScheme: LightMode,
         defaultStyle: calculateDefaultStyle(Number.MAX_SAFE_INTEGER),
-        subscribeTouchEnd: (handler: ((event:GestureResponderEvent) => void)):void => {},
-        unsubscribeTouchEnd: (handler: ((event:GestureResponderEvent) => void)):void => {},
-        sendTouchEndEvent: (event:GestureResponderEvent):void => {}
+        subscribeTouchEnd: (handler: (() => void)):void => {},
+        unsubscribeTouchEnd: (handler: (() => void)):void => {},
     });

@@ -1,12 +1,11 @@
 import {DefaultProps} from "../globalStyles";
 import Limiter from "../components/Limiter";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
-import {View} from "react-native";
+import {TouchableOpacity, View} from "react-native";
 import {getRandomVector} from "../utils/boolsUtils";
 import DropDown, {DropDownElement} from "../components/DropDown";
 import React, {useContext, useRef, useState} from "react";
 import {AppContext} from "../colors";
-import CustomTouchableOpacity from "../components/CustomTouchableOpacity";
 import {getRandom} from "../utils/utils";
 
 export default function Task4() {
@@ -88,14 +87,14 @@ export default function Task4() {
             </View> : null}
 
             <View style={[defaultStyle.marginTopNormal, {flexDirection: "row"}]}>
-                <CustomTouchableOpacity onPress={checkCorrect} style={{
+                <TouchableOpacity onPress={checkCorrect} style={{
                     backgroundColor: colorScheme.accentBackground,
                     padding: 10,
                     borderRadius: 10
                 }}>
                     <ThemeText fontSizeType={FontSizeTypes.error}
                                style={{color: colorScheme.accentTextColor}}>{status && nameFunction ? "Попробовать ещё раз" : "Проверить"}</ThemeText>
-                </CustomTouchableOpacity>
+                </TouchableOpacity>
             </View>
         </Limiter>
     )

@@ -1,29 +1,49 @@
-import {View, StyleSheet, ScrollView, useWindowDimensions} from "react-native";
+import {View, StyleSheet, useWindowDimensions, ScrollView} from "react-native";
 import {adaptiveLess} from "../utils/utils";
 import {DefaultProps} from "../globalStyles";
-import ThemeText from "./ThemeText";
-export default function Limiter({children, style}:DefaultProps){
+
+export interface LimiterProps extends DefaultProps {
+    notScroll?: boolean,
+    styleMain?: typeof this.style,
+}
+
+export default function Limiter({notScroll, children, style, styleMain}: LimiterProps) {
+    return (
+        <>
+            {notScroll ?
+                <View>
+                    <LimiterInner styleMain={styleMain} children={children} style={style}/>
+                </View>
+                :
+                <ScrollView>
+                    <LimiterInner styleMain={styleMain} children={children} style={style}/>
+                </ScrollView>
+            }
+        </>
+    );
+}
+
+
+function LimiterInner({children, style, styleMain}: LimiterProps) {
     const {height, width} = useWindowDimensions();
 
     const styles = StyleSheet.create({
         wrapperContainer: {
             justifyContent: "center",
             flexDirection: "row",
-            paddingTop: adaptiveLess(width, 40, {"700": 20}),
-            paddingBottom: adaptiveLess(width, 40, {"700": 20}),
         },
         mainContainer: {
+            marginTop: adaptiveLess(width, 40, {"700": 20}),
+            marginBottom: adaptiveLess(width, 40, {"700": 20}),
             width: width * adaptiveLess(width, 0.55, {"1270": 0.7, "1048": 0.8, "700": 0.9}),
         }
     });
 
     return (
-        <ScrollView>
-            <View style={styles.wrapperContainer}>
-                <View style={[styles.mainContainer, style]}>
-                    {children}
-                </View>
+        <View style={[styles.wrapperContainer, styleMain]}>
+            <View style={[styles.mainContainer, style]}>
+                {children}
             </View>
-        </ScrollView>
-    );
+        </View>
+    )
 }

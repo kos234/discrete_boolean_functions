@@ -8,35 +8,49 @@ export interface DefaultProps{
     children?:any,
 }
 export function calculateDefaultStyle(width:number){
+    const fontSizeSmall = adaptiveLess(width, 18, {"800": 16}); //main
+    const fontSizeBig = fontSizeSmall * 9/4;
+    const fontSizeNormal=  fontSizeSmall * 3/2;
+    const fontSizeSub = fontSizeSmall * 5/6;
+    const fontSizeHeaderTitle = fontSizeSmall * 7/6;
+
     return StyleSheet.create({
         //Margins
+        //{"1270": 15, "1048": 15, "700": 15}
         marginTopNormal:{
-            marginTop: adaptiveLess(width, 25, {"1270": 15, "1048": 15, "700": 15})
+            marginTop: adaptiveLess(width, 10, {}),
         },
         marginTopSmall:{
-            marginTop: adaptiveLess(width, 10, {"1270": 7, "1048": 7, "700": 7})
+            marginTop: adaptiveLess(width, 10, {})
         },
+
         //Размер текста
         fontSize_big:{
-            fontSize: adaptiveLess(width, 40, {"1270": 35, "425": 32})
+            fontSize: fontSizeBig,
+            lineHeight: fontSizeBig * 1.5,
         },
         fontSize_buttonCard:{
-            fontSize: adaptiveLess(width, 20, {})
+            fontSize: adaptiveLess(width, fontSizeSmall, {"800": fontSizeHeaderTitle}),
+            lineHeight: adaptiveLess(width, fontSizeSmall, {"800": fontSizeHeaderTitle}) * 1.5,
         },
         fontSize_normal:{
-            fontSize: adaptiveLess(width, 30, {"1270": 25, "425": 22})
+            fontSize: fontSizeNormal,
+            lineHeight: fontSizeNormal * 1.5,
         },
         fontSize_small:{
-            fontSize: adaptiveLess(width, 25, {"1270": 23, "425": 21})
+            fontSize: fontSizeSmall,
+            lineHeight: fontSizeSmall * 1.5,
         },
         fontSize_error:{
-            fontSize: adaptiveLess(width, 20, {"1270": 17, "425": 16})
+            fontSize: fontSizeSmall,
+            lineHeight: fontSizeSmall * 1.5,
         },
         fontSize_sub:{
-            fontSize: adaptiveLess(width, 14, {"1270": 12, "425": 11})
+            fontSize: fontSizeSub,
         },
         fontSize_title:{
-            fontSize: adaptiveLess(width, 18, {"425": 16}),
+            fontSize: fontSizeHeaderTitle,
+            lineHeight: fontSizeHeaderTitle * 1.5,
             //@ts-ignore
             themeIconSize: adaptiveLess(width, 30, {"425": 21}),
             //@ts-ignore

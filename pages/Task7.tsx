@@ -1,5 +1,5 @@
 import Limiter from "../components/Limiter";
-import {useWindowDimensions, View} from "react-native";
+import {TouchableOpacity, useWindowDimensions, View} from "react-native";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import ThemeInput from "../components/ThemeInput";
 import {adaptiveLess, safeToString} from "../utils/utils";
@@ -7,7 +7,6 @@ import React, {useContext, useRef, useState} from "react";
 import {AppContext} from "../colors";
 import {drawTableBoolFunction, getRandomVector, getValueINDNF, KNF, parseDNF} from "../utils/boolsUtils";
 import {DropDownElement} from "../components/DropDown";
-import CustomTouchableOpacity from "../components/CustomTouchableOpacity";
 import useJSONState from "../utils/useJSONState";
 
 const Task5ElemStatuses: DropDownElement[] = [{key: "false", value: "фиктивная"}, {key: "true", value: "существенная"}]
@@ -34,7 +33,6 @@ export default function Task7() {
         setRawDNF(value);
 
         const res = parseDNF(value, false);
-        console.log("KNF", res.value);
         errors.current.KNF = res.error;
         commitErrors();
 
@@ -123,14 +121,14 @@ export default function Task7() {
                 </> : null}
 
                 <View style={[defaultStyle.marginTopNormal, {flexDirection: "row"}]}>
-                    <CustomTouchableOpacity onPress={onClick} style={{
+                    <TouchableOpacity onPress={onClick} style={{
                         backgroundColor: colorScheme.accentBackground,
                         padding: 10,
                         borderRadius: 10
                     }}>
                         <ThemeText fontSizeType={FontSizeTypes.error}
                                    style={{color: colorScheme.accentTextColor}}>{message ? "Попробовать ещё раз" : "Проверить"}</ThemeText>
-                    </CustomTouchableOpacity>
+                    </TouchableOpacity>
                 </View>
             </> : null}
         </Limiter>

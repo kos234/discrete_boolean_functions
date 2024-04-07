@@ -36,10 +36,6 @@ export default function App() {
     const {height, width} = useWindowDimensions();
     const listenersTouchEnd = useRef([]);
 
-    console.log("link", getLinking());
-    console.log("link", getLinking());
-    console.log("link", getLinking());
-
     function toggleTheme() {
         if (currentScheme === "dark") {
             setColorScheme(LightMode);
@@ -63,17 +59,18 @@ export default function App() {
         return route.name;
     }
 
-    function sendTouchEndEvent(touchEvent: GestureResponderEvent): void {
+    function sendTouchEndEvent():void {
+        console.log("TOUCH");
         listenersTouchEnd.current.forEach(handler => {
-            handler(touchEvent);
+            handler();
         })
     }
 
-    function subscribeTouchEnd(handler: (event: GestureResponderEvent) => void) {
+    function subscribeTouchEnd(handler: () => void) {
         listenersTouchEnd.current.push(handler);
     }
 
-    function unsubscribeTouchEnd(handler: (event: GestureResponderEvent) => void) {
+    function unsubscribeTouchEnd(handler: () => void) {
         const index = listenersTouchEnd.current.indexOf(handler);
         if (index === -1)
             return;
@@ -130,6 +127,13 @@ export default function App() {
         screenOptions.headerTitleStyle = {
             fontSize: defaultStyle.fontSize_title.fontSize
         };
+
+        useEffect(() => {
+            document.querySelector("#root").addEventListener("click", sendTouchEndEvent);
+            return () => {
+                document.querySelector("#root").removeEventListener("click", sendTouchEndEvent);
+            }
+        }, []);
     }
 
     useEffect(() => {
@@ -169,33 +173,28 @@ export default function App() {
             defaultStyle: defaultStyle,
             subscribeTouchEnd: subscribeTouchEnd,
             unsubscribeTouchEnd: unsubscribeTouchEnd,
-            sendTouchEndEvent: sendTouchEndEvent,
         }}>
-            <KeyboardAvoidingView behavior={"padding"}
+            <KeyboardAvoidingView onTouchStart={sendTouchEndEvent} behavior={"padding"}
                                   style={{flex: 1, backgroundColor: colorScheme.backgroundColor}}>
-
-                {/*//@ts-ignore*/}
-                <Pressable onPress={sendTouchEndEvent} style={{flex: 1, cursor: "auto"}}>
-                    <NavigationContainer linking={getLinking()}
-                                         ref={(e) => {
-                                             if (currentPage === "" && e)
-                                                 setCurrentPage(getActiveRouteName(e.getState()));
-                                         }}
-                                         onStateChange={(state) => {
-                                             setCurrentPage(getActiveRouteName(state));
-                                         }}>
-                        {/*//@ts-ignore*/}
-                        <Stack.Navigator screenOptions={screenOptions}>
-                            <Stack.Screen name="main" component={HomePage}
-                                          options={{title: "Булевы функции | Главная"}}/>
-                            {Tasks.map((e, index) => (
-                                //@ts-ignore
-                                <Stack.Screen navigationKey={e.id} key={e.id} name={e.id} component={e.component}
-                                              options={{title: e.title + " | " + (index + 1)}}/>
-                            ))}
-                        </Stack.Navigator>
-                    </NavigationContainer>
-                </Pressable>
+                <NavigationContainer linking={getLinking()}
+                                     ref={(e) => {
+                                         if (currentPage === "" && e)
+                                             setCurrentPage(getActiveRouteName(e.getState()));
+                                     }}
+                                     onStateChange={(state) => {
+                                         setCurrentPage(getActiveRouteName(state));
+                                     }}>
+                    {/*//@ts-ignore*/}
+                    <Stack.Navigator screenOptions={screenOptions}>
+                        <Stack.Screen name="main" component={HomePage}
+                                      options={{title: "Булевы функции | Главная"}}/>
+                        {Tasks.map((e, index) => (
+                            //@ts-ignore
+                            <Stack.Screen navigationKey={e.id} key={e.id} name={e.id} component={e.component}
+                                          options={{title: e.title + " | " + (index + 1)}}/>
+                        ))}
+                    </Stack.Navigator>
+                </NavigationContainer>
             </KeyboardAvoidingView>
         </AppContext.Provider>
     )

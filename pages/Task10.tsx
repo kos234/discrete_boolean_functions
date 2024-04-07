@@ -1,5 +1,5 @@
 import Limiter from "../components/Limiter";
-import {useWindowDimensions, View} from "react-native";
+import {TouchableOpacity, useWindowDimensions, View} from "react-native";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import ThemeInput from "../components/ThemeInput";
 import {adaptiveLess, safeToString} from "../utils/utils";
@@ -8,7 +8,6 @@ import {AppContext} from "../colors";
 import {checkPreFullClases, getRandomVector, getResidualIndexes, getResidualInVector} from "../utils/boolsUtils";
 import DropDown, {DropDownElement} from "../components/DropDown";
 import useArrayState from "../utils/useArrayState";
-import CustomTouchableOpacity from "../components/CustomTouchableOpacity";
 import useJSONState from "../utils/useJSONState";
 
 const Task10ElemStatuses:DropDownElement[] = [{key: "false", value: "не принадлежит"}, {key: "true", value: "принадлежит"}]
@@ -128,14 +127,14 @@ export default function Task10() {
                 </View> : null}
 
                 <View style={[defaultStyle.marginTopNormal, {flexDirection: "row"}]}>
-                    <CustomTouchableOpacity onPress={checkCorrect} style={{
+                    <TouchableOpacity onPress={checkCorrect} style={{
                         backgroundColor: colorScheme.accentBackground,
                         padding: 10,
                         borderRadius: 10
                     }}>
                         <ThemeText fontSizeType={FontSizeTypes.error}
                                    style={{color: colorScheme.accentTextColor}}>{message ? "Попробовать ещё раз" : "Проверить"}</ThemeText>
-                    </CustomTouchableOpacity>
+                    </TouchableOpacity>
                 </View>
             </> : null}
         </Limiter>
