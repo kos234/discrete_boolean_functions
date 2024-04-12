@@ -18,7 +18,7 @@ export function calculateDefaultStyle(width:number){
         //Margins
         //{"1270": 15, "1048": 15, "700": 15}
         marginTopNormal:{
-            marginTop: adaptiveLess(width, 10, {}),
+            marginTop: adaptiveLess(width, 20, {}),
         },
         marginTopSmall:{
             marginTop: adaptiveLess(width, 10, {})

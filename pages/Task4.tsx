@@ -72,12 +72,12 @@ export default function Task4() {
     return (
         <Limiter>
             <View style={{zIndex: 10, elevation: 10}}>
-                <View style={{flexDirection: "row"}}>
+                <View style={{flexDirection: "row", flexWrap: "wrap"}}>
                     <ThemeText fontSizeType={FontSizeTypes.normal}>f(x, y) = ({vector}) -
-                        это&nbsp;</ThemeText>
+                        это </ThemeText>
 
                     <DropDown defaultValue={nameFunction ? nameFunction.value : null} style={{width: 300}}
-                              elements={refResiduals.current} onSelect={setRawNameFunction} placeholder={"Имя функции"}/>
+                              elements={refResiduals.current} onSelect={setRawNameFunction} placeholder={"имя функции"}/>
                 </View>
             </View>
 

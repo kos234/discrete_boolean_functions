@@ -1,5 +1,5 @@
 import Limiter from "../components/Limiter";
-import {useWindowDimensions, View} from "react-native";
+import {ScrollView, useWindowDimensions, View} from "react-native";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import ThemeInput from "../components/ThemeInput";
 import {adaptiveLess, binSearch} from "../utils/utils";
@@ -7,26 +7,27 @@ import {useContext, useRef, useState} from "react";
 import {AppContext} from "../colors";
 import {checkVectorCorrect, getStringBooleanFormatByVector} from "../utils/boolsUtils";
 import {fastClearArray} from "../utils/useArrayState";
+import useErrorState from "../utils/useErrorState";
 
 export default function Task9() {
     const {height, width} = useWindowDimensions();
     const {colorScheme, defaultStyle} = useContext(AppContext);
     const [rawVector, setRawVector] = useState<string>("");
-    const [errorVector, setErrorVector] = useState(null);
+    const [vectorError, isVectorError, setVectorError] = useErrorState(null, 0);
+
 
     function onVectorChange(value: string): void {
         const res = checkVectorCorrect(value);
-        setErrorVector(res.error);
+        setVectorError(res.error);
         setRawVector(res.value.vector);
     }
 
     return (
         <Limiter>
             <View style={{flexDirection: "row"}}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите f: </ThemeText>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите f:  </ThemeText>
                 <ThemeInput
                     style={{
-                        marginLeft: 15,
                         flex: adaptiveLess(width, 0, {"478": 1}),
                         width: adaptiveLess(width, null, {"478": 2})
                     }}
@@ -35,16 +36,18 @@ export default function Task9() {
                     notDeleteFirstZero={true}/>
             </View>
 
-            {errorVector ? <View style={defaultStyle.marginTopSmall}>
+            {vectorError ? <View style={defaultStyle.marginTopSmall}>
                 <ThemeText colorType={ColorTypes.error}
-                           fontSizeType={FontSizeTypes.error}>{errorVector}</ThemeText>
+                           fontSizeType={FontSizeTypes.error}>{vectorError}</ThemeText>
             </View> : null}
 
-            {!errorVector ?
+            {!isVectorError.current ?
 
-                <View style={[defaultStyle.marginTopNormal, {flexDirection: "row", alignItems: "flex-end"}]}>
+                <View style={[defaultStyle.marginTopNormal, {flexDirection: adaptiveLess(width, 1, {"478": 0}) ? "row" : "column"}]}>
                     <ThemeText fontSizeType={FontSizeTypes.normal}>СКНФ:&nbsp;</ThemeText>
-                    {getStringBooleanFormatByVector(rawVector, false, colorScheme)}
+                    <ScrollView horizontal={true}>
+                        {getStringBooleanFormatByVector(rawVector, false, colorScheme)}
+                    </ScrollView>
                 </View>
                 : null
             }

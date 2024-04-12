@@ -26,6 +26,7 @@ import {calculateDefaultStyle} from "./globalStyles";
 import NonSelectPressable from "./components/NonSelectPressable";
 import {PartialState} from "@react-navigation/routers/lib/typescript/src/types";
 import {GestureResponderEvent} from "react-native/Libraries/Types/CoreEventTypes";
+import {getBackgroundColor} from "@expo/metro-runtime/build/error-overlay/UI/LogBoxStyle";
 
 const Stack = createNativeStackNavigator();
 
@@ -60,7 +61,6 @@ export default function App() {
     }
 
     function sendTouchEndEvent():void {
-        console.log("TOUCH");
         listenersTouchEnd.current.forEach(handler => {
             handler();
         })
@@ -98,7 +98,7 @@ export default function App() {
                     paddingLeft: Platform.OS === "web" ? 15 : 0,
                     paddingRight: Platform.OS === "web" ? 0 : 10,
                 }}>
-                    <View style={{justifyContent: "center", height: "100%"}}>
+                    <View hitSlop={{top: 10, bottom: 10, left: 10, right: 10}} style={{justifyContent: "center", height: "100%"}}>
                         <ArrowBack height={Platform.OS === "web" ? defaultStyle.fontSize_title.backIconSize : 24}
                                    width={Platform.OS === "web" ? defaultStyle.fontSize_title.backIconSize : 24}
                                    fill={colorScheme.textColor}></ArrowBack>
@@ -107,10 +107,10 @@ export default function App() {
         ),
         headerTintColor: colorScheme.textColor,
         headerRight: () => (
-            <NonSelectPressable onPress={toggleTheme} style={{
+            <NonSelectPressable hitSlop={10} onPress={toggleTheme} style={{
                 marginRight: Platform.OS === "web" ? 20 : 0,
-                height: "100%",
-                justifyContent: "center"
+                justifyContent: "center",
+                backgroundColor: colorScheme.cardColor,
             }}>
                 {currentScheme === "light" ?
                     <DarkTheme height={Platform.OS === "web" ? defaultStyle.fontSize_title.themeIconSize : 24}

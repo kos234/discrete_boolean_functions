@@ -19,6 +19,7 @@ export function binSearch<T>(findValue:T, array:T[], comparator: (a:T, b:T)=>num
     return undefined;
 }
 
+
 export function adaptiveLess(value:number, defaultStyle:number, adaptiveStyle: Object):number {
     let keys:number[] = Object.keys(adaptiveStyle).map(key => parseInt(key)).sort((a, b) => {
         return b - a
@@ -71,7 +72,7 @@ export function fastUniqueArray(array:number[]):void{
 }
 
 export function safeToString(value:any):string{
-    if(value == null)
+    if(value == null || Number.isNaN(value))
         return "";
     return value + "";
 }

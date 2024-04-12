@@ -8,6 +8,7 @@ import {adaptiveLess, binSearch} from "../utils/utils";
 import {AppContext} from "../colors";
 import {checkVectorCorrect, drawTableBoolFunction, getResidualIndexes, getResidualInVector} from "../utils/boolsUtils";
 import {fastClearArray} from "../utils/useArrayState";
+import useErrorState from "../utils/useErrorState";
 
 export default function Task2() {
     const {height, width} = useWindowDimensions();
@@ -15,7 +16,7 @@ export default function Task2() {
     const [rawVector, setRawVector] = useState<string>("");
     const [rawResidual, setRawResidual] = useState<string>("");
     const [rawArgument, setRawArgument] = useState<string>("");
-    const [errorVector, setErrorVector] = useState(null);
+    const [errorVector, isErrorVector, setErrorVector] = useErrorState(null);
     const refArguments = useRef<DropDownElement[]>([]);
     const refResiduals = useRef<DropDownElement[]>([{key: "0", value: "0"}, {key: "1", value: "1"}]);
     const residualIndexes = useMemo<number[]>(() => getResidualIndexes(rawVector.length, parseInt(rawArgument), parseInt(rawResidual)),
@@ -82,7 +83,7 @@ export default function Task2() {
                           placeholder={"остаточная"}></DropDown>
             </View>
 
-            {rawVector && rawArgument && rawResidual && !errorVector ?
+            {rawVector && rawArgument && rawResidual && !isErrorVector.current ?
                 <>
                     <View style={[defaultStyle.marginTopNormal, {flexDirection: "row"}]}>
                         <View style={{flexDirection: "row"}}>
@@ -100,11 +101,11 @@ export default function Task2() {
                     </View>
 
 
-                    {/*{drawTableBoolFunction(rawVector, defaultStyle, colorScheme, (row, column) => {*/}
-                    {/*        if(binSearch<number>(row-1, residualIndexes, (a, b) => a - b) != undefined)*/}
-                    {/*            return {fontWeight: "bold"}*/}
-                    {/*    return {}*/}
-                    {/*})}*/}
+                    {drawTableBoolFunction(rawVector, defaultStyle, colorScheme, (row, column) => {
+                            if(binSearch<number>(row-1, residualIndexes, (a, b) => a - b) != undefined)
+                                return {fontWeight: "bold"}
+                        return {}
+                    })}
                 </>
                 : null}
 

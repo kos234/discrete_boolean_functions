@@ -1,5 +1,5 @@
 import Limiter from "../components/Limiter";
-import {TouchableOpacity, useWindowDimensions, View} from "react-native";
+import {ScrollView, TouchableOpacity, useWindowDimensions, View} from "react-native";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import ThemeInput from "../components/ThemeInput";
 import {adaptiveLess, safeToString} from "../utils/utils";
@@ -8,6 +8,7 @@ import {AppContext} from "../colors";
 import {drawTableBoolFunction, getRandomVector, getValueINDNF, KNF, parseDNF} from "../utils/boolsUtils";
 import {DropDownElement} from "../components/DropDown";
 import useJSONState from "../utils/useJSONState";
+import useErrorState from "../utils/useErrorState";
 
 const Task5ElemStatuses: DropDownElement[] = [{key: "false", value: "фиктивная"}, {key: "true", value: "существенная"}]
 export default function Task7() {
@@ -15,7 +16,8 @@ export default function Task7() {
     const {colorScheme, defaultStyle} = useContext(AppContext);
     const [nValue, setNValue] = useState<number>();
     const [vector, setVector] = useState<string>(null);
-    const [errors, commitErrors] = useJSONState({vector: null, KNF: null});
+    const [vectorError, isVectorError, setVectorError] = useErrorState(null, 0);
+    const [knfError, isKDNFError, setKNFError] = useErrorState(null);
     const [message, setMessage] = useState<{ colorType: ColorTypes, value: string }>(null);
     const [rawDNF, setRawDNF] = useState("");
     const knfRef = useRef<KNF>(null);
@@ -23,8 +25,7 @@ export default function Task7() {
     function generateVector(value: string) {
         const n = parseInt(value);
         const res = getRandomVector(n);
-        errors.current.vector = res.error;
-        commitErrors();
+        setVectorError(res.error);
         setVector(res.value);
         setNValue(n);
     }
@@ -33,14 +34,13 @@ export default function Task7() {
         setRawDNF(value);
 
         const res = parseDNF(value, false);
-        errors.current.KNF = res.error;
-        commitErrors();
+        setKNFError(res.error);
 
         if (res.error)
             return;
+
         if (nValue < res.value.getMaxPow()) {
-            errors.current.KNF = `Количество переменных в ДНФ больше чем в векторе - ${res.value.getMaxPow()}`;
-            commitErrors();
+            setKNFError(`Количество переменных в ДНФ больше чем в векторе - ${res.value.getMaxPow()}`);
             return;
         }
 
@@ -56,11 +56,10 @@ export default function Task7() {
         }
 
         if(rawDNF.length === 0){
-            errors.current.KNF = "Введите КНФ!";
-            commitErrors();
+            setKNFError("Введите КНФ!");
         }
 
-        if(errors.current.KNF || errors.current.vector)
+        if(isVectorError.current || isKDNFError.current)
             return;
 
         for (let i = 0; i < 1 << nValue; i++) {
@@ -76,40 +75,40 @@ export default function Task7() {
     return (
         <Limiter>
             <View style={{flexDirection: "row"}}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите n: </ThemeText>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите n:  </ThemeText>
                 <ThemeInput style={{
-                    marginLeft: 15,
                     flex: adaptiveLess(width, 0, {"478": 1}),
                     width: adaptiveLess(width, null, {"478": 2})
                 }} value={safeToString(nValue)} onInput={generateVector} typeInput={"numeric"} placeholder={"число"}
                             fontSizeType={FontSizeTypes.normal}/>
             </View>
-            {errors.current.vector ? <View style={defaultStyle.marginTopSmall}>
+            {vectorError ? <View style={defaultStyle.marginTopSmall}>
                 <ThemeText colorType={ColorTypes.error}
-                           fontSizeType={FontSizeTypes.error}>{errors.current.vector}</ThemeText>
+                           fontSizeType={FontSizeTypes.error}>{vectorError}</ThemeText>
             </View> : null}
 
             {vector && nValue ? <>
-                <View style={defaultStyle.marginTopNormal}>
-                    <ThemeText fontSizeType={FontSizeTypes.normal}>f = ({vector})</ThemeText>
+                <View style={[defaultStyle.marginTopNormal, {flexDirection: "row"}]}>
+                    <ThemeText fontSizeType={FontSizeTypes.normal}>f = </ThemeText>
+                    <ScrollView horizontal={true}>
+                        <ThemeText>({vector})</ThemeText>
+                    </ScrollView>
                 </View>
 
-                <View style={[{flexDirection: "row"}, defaultStyle.marginTopNormal]}>
-                    <ThemeText fontSizeType={FontSizeTypes.normal}>Введите КНФ: </ThemeText>
+                <View style={[{flexDirection: "row", flexWrap: "wrap"}, defaultStyle.marginTopNormal]}>
+                    <ThemeText fontSizeType={FontSizeTypes.normal}>Введите КНФ:  </ThemeText>
                     <ThemeInput
                         style={{
-                            marginLeft: 15,
-                            flex: adaptiveLess(width, 0, {"478": 1}),
-                            width: adaptiveLess(width, null, {"478": 2})
+                            width: adaptiveLess(width, null, {"478": "100%"})
                         }}
                         value={rawDNF} onInput={onInputDNF}
                         placeholder={"КНФ"}
                         fontSizeType={FontSizeTypes.normal}/>
                 </View>
 
-                {errors.current.KNF ? <View style={defaultStyle.marginTopSmall}>
+                {knfError ? <View style={defaultStyle.marginTopSmall}>
                     <ThemeText colorType={ColorTypes.error}
-                               fontSizeType={FontSizeTypes.error}>{errors.current.KNF}</ThemeText>
+                               fontSizeType={FontSizeTypes.error}>{knfError}</ThemeText>
                 </View> : null}
 
                 {message ? <>

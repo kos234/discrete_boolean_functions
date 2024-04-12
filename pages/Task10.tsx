@@ -9,6 +9,7 @@ import {checkPreFullClases, getRandomVector, getResidualIndexes, getResidualInVe
 import DropDown, {DropDownElement} from "../components/DropDown";
 import useArrayState from "../utils/useArrayState";
 import useJSONState from "../utils/useJSONState";
+import useErrorState from "../utils/useErrorState";
 
 const Task10ElemStatuses:DropDownElement[] = [{key: "false", value: "не принадлежит"}, {key: "true", value: "принадлежит"}]
 const Task10DropDowns:ReactNode[] = [
@@ -23,15 +24,15 @@ export default function Task10() {
     const {colorScheme, defaultStyle} = useContext(AppContext);
     const [nValue, setNValue] = useState<number>(null);
     const [vector, setVector] = useState(null);
-    const [errors, commitErrors] = useJSONState({vector: null, types: null});
+    const [vectorError, isVectorError, setVectorError] = useErrorState(null, 0);
+    const [typeError, isTypeError, setTypeError] = useErrorState(null);
     const [message, setMessage] = useState(null);
     const [dataClases, commitDataClases] = useArrayState<boolean | null>([]);
 
     function generateVector(value: string) {
         const n = parseInt(value);
         const res = getRandomVector(n);
-        errors.current.vector = res.error;
-        commitErrors();
+        setVectorError(res.error);
         setVector(res.value);
         setNValue(Number.isNaN(n) ? null : n);
 
@@ -41,12 +42,10 @@ export default function Task10() {
 
     function checkAllSignifications():boolean{
         if(dataClases.current.find(item => item == null) !== undefined) {
-            errors.current.types = "Укажите принадлежность для каждого класса!"
-            commitErrors();
+            setTypeError("Укажите принадлежность для каждого класса!");
             return true;
         }
-        errors.current.types = null;
-        commitErrors();
+        setTypeError(null);
         return false;
     }
 
@@ -85,20 +84,19 @@ export default function Task10() {
     return (
         <Limiter>
             <View style={{flexDirection: "row"}}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите n: </ThemeText>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите n:  </ThemeText>
                 <ThemeInput style={{
-                    marginLeft: 15,
                     flex: adaptiveLess(width, 0, {"478": 1}),
                     width: adaptiveLess(width, null, {"478": 2})
                 }} value={safeToString(nValue)} onInput={generateVector} typeInput={"numeric"} placeholder={"число"}
                             fontSizeType={FontSizeTypes.normal}/>
             </View>
-            {errors.current.vector ? <View style={defaultStyle.marginTopSmall}>
+            {vectorError ? <View style={defaultStyle.marginTopSmall}>
                 <ThemeText colorType={ColorTypes.error}
-                           fontSizeType={FontSizeTypes.error}>{errors.current.vector}</ThemeText>
+                           fontSizeType={FontSizeTypes.error}>{vectorError}</ThemeText>
             </View> : null}
 
-            {vector && nValue ? <>
+            {vector && !isVectorError.current ? <>
                 <View style={defaultStyle.marginTopNormal}>
                     <ThemeText fontSizeType={FontSizeTypes.normal}>f = ({vector})</ThemeText>
                 </View>
@@ -106,7 +104,7 @@ export default function Task10() {
                 <>
                     {dataClases.current.map((item, index) => (
                         <View key={index} style={[defaultStyle.marginTopNormal, {flexDirection: "row", zIndex: 4 + (dataClases.current.length - index), elevation: 4 + (dataClases.current.length - index)}]}>
-                            <ThemeText fontSizeType={FontSizeTypes.small}>{Task10DropDowns[index]}:&nbsp;&nbsp;</ThemeText>
+                            <ThemeText fontSizeType={FontSizeTypes.normal}>{Task10DropDowns[index]}:&nbsp;&nbsp;</ThemeText>
                             <DropDown style={{width: 250}} elements={Task10ElemStatuses} defaultValue={item == undefined ? undefined : Task10ElemStatuses[+item].value} placeholder={"принадлежность"} onSelect={(itm) => {
                                 dataClases.current[index] = itm.key === "true";
                                 commitDataClases();
@@ -116,9 +114,9 @@ export default function Task10() {
                     ))}
                 </>
 
-                {errors.current.types ? <View style={defaultStyle.marginTopSmall}>
+                {typeError ? <View style={defaultStyle.marginTopSmall}>
                     <ThemeText colorType={ColorTypes.error}
-                               fontSizeType={FontSizeTypes.error}>{errors.current.types}</ThemeText>
+                               fontSizeType={FontSizeTypes.error}>{typeError}</ThemeText>
                 </View> : null}
 
                 {message ? <View style={defaultStyle.marginTopSmall}>

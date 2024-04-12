@@ -1,7 +1,7 @@
 import Table, {TableColumn, TableRow} from "../components/Table";
 import {fastParse0or1, forTo, GetArrayReturnType, getRandom, range} from "./utils";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
-import {FlatList} from "react-native";
+import {FlatList, View} from "react-native";
 import {calculateDefaultStyle} from "../globalStyles";
 import {LightMode} from "../colors";
 import {StyleProp} from "react-native/Libraries/StyleSheet/StyleSheet";
@@ -170,10 +170,16 @@ export function parseDNF(value: string, isDNF: boolean): UtilsReturn<BooleanForm
         let currentBooleanFormatElement: (GetArrayReturnType<BooleanFormat["storage"], {}>) = {};
         let lastKey: number | null = null; //Это переменная для последовательного сбора индекса переменной
         let isTrue: boolean = true; //Если ли отрицание
+        // Поскольку парсинг идёт последовательно, минус будет считать к предыдущему слагаемому, надо это исправить
+        let minusIgnoreCount: -1 | 0 | 1 = 0;
         const flush = () => {//Мы накопили в буфер значения, поэтому нужно сохранить
+            minusIgnoreCount--;
             if (lastKey != null)
-                currentBooleanFormatElement[lastKey] = isTrue
-            isTrue = true;
+                currentBooleanFormatElement[lastKey] = minusIgnoreCount === -1 ? isTrue : true
+            if (minusIgnoreCount === -1) {
+                minusIgnoreCount = 0;
+                isTrue = true;
+            }
             lastKey = null;
         }
 
@@ -185,8 +191,7 @@ export function parseDNF(value: string, isDNF: boolean): UtilsReturn<BooleanForm
                     break markerParse;
                 }
 
-                if (isTrue)
-                    flush();
+                flush();//сохраним всё до знака
                 lastKey = 0;
             } else if (currentChar >= "1" && currentChar <= "9") {//После ввода Х, ожидается число
                 if (lastKey == null) {
@@ -206,16 +211,17 @@ export function parseDNF(value: string, isDNF: boolean): UtilsReturn<BooleanForm
                     break markerParse;
                 }
 
-                flush(); //сохраним всё до знака
-                res.value.storage.push(currentBooleanFormatElement); //добавим в массив ДНФ или КНФ хранилище
+                flush();//сохраним всё до знака
+                res.value.storage.push(currentBooleanFormatElement);//добавим в массив ДНФ или КНФ хранилище
                 currentBooleanFormatElement = {};
-            } else if (currentChar === "-") { //Отрицание
+            } else if (currentChar === "-") {//Отрицание
+                flush();
                 if (!isTrue) {
                     res.error = `Неверный символ на ${i + 1} позиции. Ожидается "x", получено "-"`
                     break markerParse;
                 }
-                flush();
                 isTrue = false;
+                minusIgnoreCount = 1;
             } else if (currentChar === " " || currentChar === "(" || currentChar === ")" || (!isDNF && (currentChar === "V" || currentChar === "v"))) {
                 //Можем сколько угодно писать скобки в кнф версии, но нас они интересовать не будут, ибо нам пофиг на приоритет знаков
                 //Тоже самое с пробелами
@@ -223,7 +229,6 @@ export function parseDNF(value: string, isDNF: boolean): UtilsReturn<BooleanForm
                 res.error = `Неверный символ на ${i + 1} позиции. Ожидается "x0-9V ", получено "${currentChar}"`
                 break markerParse;
             }
-
             //Ввод работает так, что только знак V или ^ добавляет хранилище ДНФ или КНФ в массив, поэтому после каждого набора переменных (x1x2-x3 например)
             //должен стоять знак V, это проверка именно это и делает
             //Например было x1-x2 V x3, а станет x1-x2 V x3 V
@@ -276,19 +281,19 @@ export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, c
             //Тупо перебор всех вариантов значений, а страшная фигня снизу это тупо красивый вывод для реакта
             //@ts-ignore
             ans.push(
-                <ThemeText fontSizeType={fontSize} style={{position: "relative"}}>x
+                <View style={{position: "relative", flexDirection: "row"}}>
+                    <ThemeText fontSizeType={fontSize}>x<ThemeText fontSizeType={FontSizeTypes.sub}>{(i + 1)}</ThemeText></ThemeText>
                     {Math.floor((row / (1 << n - i - 1)) % 2) !== +isDNF ?
                         <ThemeText fontSizeType={fontSize} style={{
                             position: "absolute",
                             backgroundColor: colorScheme.textColor,
-                            left: 3,
-                            right: 3,
+                            left: 0,
+                            right: 5,
                             top: 10,
                             height: 2
                         }}>&nbsp;</ThemeText>
                         : null}
-                    <ThemeText fontSizeType={FontSizeTypes.sub}>{(i + 1)}</ThemeText>
-                </ThemeText>
+                </View>
             )
             if (i + 1 !== n && !isDNF) {
                 ans.push(<ThemeText fontSizeType={fontSize}>V</ThemeText>)
@@ -300,7 +305,7 @@ export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, c
         } else {
             ans.push(<ThemeText fontSizeType={fontSize}>)</ThemeText>);
             //@ts-ignore
-            ans.push(<ThemeText fontSizeType={fontSize} style={{transform: [{rotate: 180}]}}> V </ThemeText>);
+            ans.push(<ThemeText fontSizeType={fontSize} style={{transform: [{rotate: "180deg"}]}}> V </ThemeText>);
         }
     }
 
@@ -557,8 +562,8 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
                     continue;
 
                 res.value.push(
-                    <ThemeText key={"x" + i + "" + q} fontSizeType={FontSizeTypes.normal}
-                               style={{position: "relative"}}>x
+                    <View key={"x" + i + "" + q} style={{position: "relative"}}>
+                        <ThemeText>x<ThemeText fontSizeType={FontSizeTypes.sub}>{(q + 1)}</ThemeText></ThemeText>
                         {currentMask[q] === "0" ?
                             <ThemeText fontSizeType={FontSizeTypes.normal} style={{
                                 position: "absolute",
@@ -569,8 +574,7 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
                                 height: 2
                             }}>&nbsp;</ThemeText>
                             : null}
-                        <ThemeText fontSizeType={FontSizeTypes.sub}>{(q + 1)}</ThemeText>
-                    </ThemeText>
+                    </View>
                 )
             }
             if (i + 1 != ansArray.length)
@@ -596,7 +600,8 @@ export function drawTableBoolFunction(vector: string, defaultStyle: ReturnType<t
             <TableRow style={{borderBottomWidth: 2, borderBottomColor: colorScheme.textColor}}>
                 {forTo(n, (index) => (
                     <TableColumn style={{justifyContent: "center"}} key={"header" + index}>
-                        <ThemeText fontSizeType={FontSizeTypes.normal} style={[{textAlign: "center"}, addStyleToText(0, index)]}>
+                        <ThemeText fontSizeType={FontSizeTypes.normal}
+                                   style={[{textAlign: "center"}, addStyleToText(0, index)]}>
                             x<ThemeText fontSizeType={FontSizeTypes.sub}>{index + 1}</ThemeText>
                         </ThemeText>
                     </TableColumn>

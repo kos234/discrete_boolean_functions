@@ -58,14 +58,12 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
 
     const checkTouchEnd = (): void => {
         clearInterval(refCloseAfterClickAnywhere.current);
-        console.log("isopen", isOpen.current)
         if(ignoreClick.current){
             ignoreClick.current = false;
             return
         }
         if (isOpen.current)
             refCloseAfterClickAnywhere.current = setTimeout(() => {
-                console.log("WTF")
                 clickOpen();
             }, 100);
     }
@@ -87,7 +85,6 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
             easing: Easing.inOut(Easing.ease)
         }).start();
         isOpen.current = (!isOpen.current);
-        console.log("isOpen.current", isOpen.current);
     }
 
     function hoverOnItem(itemIndex: number, to: number): void {
@@ -117,7 +114,7 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
     }
 
     return (
-        <View ref={parentNode} style={[{
+        <View ref={parentNode} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}  style={[{
             borderBottomWidth: 1,
             borderColor: colorScheme.borderColor,
             width: 200,
@@ -140,7 +137,7 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                                colorType={defaultValue ? ColorTypes.first : ColorTypes.hint}
                                style={{
                                    borderBottomWidth: null,
-                                   width: "100%"
+                                   flex: 1,
                                }}>{defaultValue ? defaultValue : placeholder}</ThemeText>
                 }
                 <View>
@@ -161,30 +158,41 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                     backgroundColor: colorScheme.backgroundColor,
                     zIndex: 4,
                     elevation: 4,
+                    maxHeight:300,
                 }}>
                     <View style={{
                         borderWidth: 1,
                         borderRadius: 10,
                         borderColor: colorScheme.borderColor,
                         padding: 5,
+                        flexGrow: 1,
+                        maxHeight: 300
                     }}>
-                        <ScrollView>
+
+                        <ScrollView style={{ maxHeight: 300, flexGrow: 1}}>
                             {elements.map((value: DropDownElement, index: number) => (
-                                <NonSelectPressable key={"key" + index} onPress={() => {
+                                <NonSelectPressable onPress={() => {
                                     onSelect(value);
-                                    // clickOpen()
+                                    clearInterval(refCloseAfterClickAnywhere.current);
+                                    clickOpen();
+                                    if(Platform.OS !== "web"){
+                                        hoverOnItem(index, 1);
+                                        setTimeout(() => {
+                                            hoverOnItem(index, 0);
+                                        }, 300);
+                                    }
                                 }} onHoverIn={(e) => hoverOnItem(index, 1)}
-                                                    onHoverOut={(e) => hoverOnItem(index, 0)}>
-                                    <Animated.View style={{
-                                        paddingTop: 5,
-                                        paddingBottom: 5,
-                                        paddingLeft: 15,
-                                        paddingRight: 15,
-                                        backgroundColor: refAnimations.current[index].interpolate,
-                                    }}>
-                                        <ThemeText fontSizeType={FontSizeTypes.normal}>{value.value}</ThemeText>
-                                    </Animated.View>
-                                </NonSelectPressable>
+                                                    onHoverOut={(e) => hoverOnItem(index, 0)} key={"key" + index} >
+                                     <Animated.View style={{
+                                         paddingTop: 5,
+                                         paddingBottom: 5,
+                                         paddingLeft: 15,
+                                         paddingRight: 15,
+                                         backgroundColor: refAnimations.current[index].interpolate,
+                                     }}>
+                                        <ThemeText key={"key" + index} fontSizeType={FontSizeTypes.normal}>{value.value}</ThemeText>
+                                     </Animated.View>
+                                 </NonSelectPressable>
                             ))}
                         </ScrollView>
                     </View>

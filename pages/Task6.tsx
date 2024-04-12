@@ -1,5 +1,5 @@
 import Limiter from "../components/Limiter";
-import {TouchableOpacity, useWindowDimensions, View} from "react-native";
+import {ScrollView, TouchableOpacity, useWindowDimensions, View} from "react-native";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import ThemeInput from "../components/ThemeInput";
 import {adaptiveLess, safeToString} from "../utils/utils";
@@ -8,6 +8,7 @@ import {AppContext} from "../colors";
 import {DNF, drawTableBoolFunction, getRandomVector, getValueINDNF, parseDNF} from "../utils/boolsUtils";
 import {DropDownElement} from "../components/DropDown";
 import useJSONState from "../utils/useJSONState";
+import useErrorState from "../utils/useErrorState";
 
 const Task5ElemStatuses: DropDownElement[] = [{key: "false", value: "фиктивная"}, {key: "true", value: "существенная"}]
 export default function Task6() {
@@ -15,7 +16,8 @@ export default function Task6() {
     const {colorScheme, defaultStyle} = useContext(AppContext);
     const [nValue, setNValue] = useState<number>();
     const [vector, setVector] = useState<string>(null);
-    const [errors, commitErrors] = useJSONState({vector: null, DNF: null});
+    const [vectorError, isVectorError, setVectorError] = useErrorState(null, 0);
+    const [dnfError, isDNFError, setDNFError] = useErrorState(null);
     const [message, setMessage] = useState<{ colorType: ColorTypes, value: string }>(null);
     const [rawDNF, setRawDNF] = useState("");
     const dnfRef = useRef<DNF>(null);
@@ -23,8 +25,7 @@ export default function Task6() {
     function generateVector(value: string) {
         const n = parseInt(value);
         const res = getRandomVector(n);
-        errors.current.vector = res.error;
-        commitErrors();
+        setVectorError(res.error);
         setVector(res.value);
         setNValue(n);
     }
@@ -33,15 +34,13 @@ export default function Task6() {
         setRawDNF(value);
 
         const res = parseDNF(value, true);
-        console.log("DNF", res.value);
-        errors.current.DNF = res.error;
-        commitErrors();
+        console.log("DNF", res.value.storage);
+        setDNFError(res.error);
 
         if (res.error)
             return;
         if (nValue < res.value.getMaxPow()) {
-            errors.current.DNF = `Количество переменных в ДНФ больше чем в векторе - ${res.value.getMaxPow()}`;
-            commitErrors();
+            setDNFError(`Количество переменных в ДНФ больше чем в векторе - ${res.value.getMaxPow()}`);
             return;
         }
 
@@ -57,11 +56,10 @@ export default function Task6() {
         }
 
         if(rawDNF.length === 0){
-            errors.current.DNF = "Введите ДНФ!";
-            commitErrors();
+            setDNFError("Введите ДНФ!");
         }
 
-        if(errors.current.DNF || errors.current.vector)
+        if(isDNFError.current || isVectorError.current)
             return;
 
         for (let i = 0; i < 1 << nValue; i++) {
@@ -75,42 +73,42 @@ export default function Task6() {
     }
 
     return (
-        <Limiter>
+        <Limiter notScroll={true} styleMain={{height: height - defaultStyle.fontSize_title.headerHeight}}>
             <View style={{flexDirection: "row"}}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите n: </ThemeText>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите n:  </ThemeText>
                 <ThemeInput style={{
-                    marginLeft: 15,
                     flex: adaptiveLess(width, 0, {"478": 1}),
                     width: adaptiveLess(width, null, {"478": 2})
                 }} value={safeToString(nValue)} onInput={generateVector} typeInput={"numeric"} placeholder={"число"}
                             fontSizeType={FontSizeTypes.normal}/>
             </View>
-            {errors.current.vector ? <View style={defaultStyle.marginTopSmall}>
+            {vectorError ? <View style={defaultStyle.marginTopSmall}>
                 <ThemeText colorType={ColorTypes.error}
-                           fontSizeType={FontSizeTypes.error}>{errors.current.vector}</ThemeText>
+                           fontSizeType={FontSizeTypes.error}>{vectorError}</ThemeText>
             </View> : null}
 
             {vector && nValue ? <>
-                <View style={defaultStyle.marginTopNormal}>
-                    <ThemeText fontSizeType={FontSizeTypes.normal}>f = ({vector})</ThemeText>
+                <View style={[defaultStyle.marginTopNormal, {flexDirection: "row"}]}>
+                    <ThemeText fontSizeType={FontSizeTypes.normal}>f = </ThemeText>
+                    <ScrollView horizontal={true}>
+                        <ThemeText>({vector})</ThemeText>
+                    </ScrollView>
                 </View>
 
-                <View style={[{flexDirection: "row"}, defaultStyle.marginTopNormal]}>
-                    <ThemeText fontSizeType={FontSizeTypes.normal}>Введите ДНФ: </ThemeText>
+                <View style={[{flexDirection: "row", flexWrap: "wrap"}, defaultStyle.marginTopNormal]}>
+                    <ThemeText fontSizeType={FontSizeTypes.normal}>Введите ДНФ:  </ThemeText>
                     <ThemeInput
                         style={{
-                            marginLeft: 15,
-                            flex: adaptiveLess(width, 0, {"478": 1}),
-                            width: adaptiveLess(width, null, {"478": 2})
+                            width: adaptiveLess(width, null, {"478": "100%"})
                         }}
                         value={rawDNF} onInput={onInputDNF}
                         placeholder={"ДНФ"}
                         fontSizeType={FontSizeTypes.normal}/>
                 </View>
 
-                {errors.current.DNF ? <View style={defaultStyle.marginTopSmall}>
+                {dnfError ? <View style={defaultStyle.marginTopSmall}>
                     <ThemeText colorType={ColorTypes.error}
-                               fontSizeType={FontSizeTypes.error}>{errors.current.DNF}</ThemeText>
+                               fontSizeType={FontSizeTypes.error}>{dnfError}</ThemeText>
                 </View> : null}
 
                 {message ? <>
@@ -135,28 +133,3 @@ export default function Task6() {
         </Limiter>
     )
 }
-
-/*
-
-    bench test
-
-    1 spread vs push
-
-139,273
-±0.83%
-fastest
-    const arr = [];
-    for(let i = 0; i < 1000; i++){
-        arr.push(i);
-    }
-
-65.82
-±1.17%
-100% slower
-    let arr = [];
-    for(let i = 0; i < 1000; i++){
-        arr = [...arr, i];
-    }
-
-
- */

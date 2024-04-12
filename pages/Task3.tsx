@@ -12,14 +12,16 @@ import {
     glueVectorOnResiduals
 } from "../utils/boolsUtils";
 import DropDown, {DropDownElement} from "../components/DropDown";
+import useErrorState from "../utils/useErrorState";
 
 
 export default function Task3() {
-    const {colorScheme, defaultStyle} = useContext(AppContext);
     const {height, width} = useWindowDimensions();
+    const {colorScheme, defaultStyle} = useContext(AppContext);
     const [zeroResidual, setZeroResidual] = useState<string>("");
     const [oneResidual, setOneResidual] = useState<string>("");
-    const [errors, setErrors] = useState({errorZeroResidual: "", errorOneResidual: ""});
+    const [zeroResidualError, isZeroResidualError, setZeroResidualError] = useErrorState(null);
+    const [oneResidualError, isOneResidualError, setOneResidualError] = useErrorState(null);
     const [rawArgument, setRawArgument] = useState<string>("");
     const refArguments = useRef<DropDownElement[]>([]);
     const residualIndexes = useMemo(() => getResidualIndexes(zeroResidual.length * 2, parseInt(rawArgument), 0),
@@ -27,19 +29,16 @@ export default function Task3() {
     const vector = useMemo(() => glueVectorOnResiduals(zeroResidual, oneResidual, residualIndexes), [zeroResidual, oneResidual, residualIndexes]);
 
     function onResidualChange(value: string, isZero: boolean = true): void {
-        const newError = {errorZeroResidual: "", errorOneResidual: ""};
         const resForZero = checkVectorCorrect(isZero ? value : zeroResidual);
         const resForOne = checkVectorCorrect(isZero ? oneResidual : value);
-        newError.errorZeroResidual = resForZero.error;
-        const rawZeroResidual = resForZero.value.vector;
-        newError.errorOneResidual = resForOne.error;
-        const rawOneResidual = resForOne.value.vector;
+        setZeroResidualError(resForZero.error);
+        setOneResidualError(resForOne.error);
 
         marker: {
-            if (!newError.errorZeroResidual && !newError.errorOneResidual)
-                if (rawZeroResidual.length != rawOneResidual.length) {
-                    newError.errorZeroResidual = "Длина векторов должна быть одинакова!";
-                    newError.errorOneResidual = newError.errorZeroResidual;
+            if (!isZeroResidualError.current && !isOneResidualError.current)
+                if (resForZero.value.vector.length != resForOne.value.vector.length) {
+                    setZeroResidualError("Длина векторов должна быть одинакова!");
+                    setOneResidualError("Длина векторов должна быть одинакова!");
                     break marker;
                 }
 
@@ -56,67 +55,56 @@ export default function Task3() {
             if (refArguments.current.length < parseInt(rawArgument))
                 setRawArgument("");
         }
-        setErrors(newError);
         if (isZero)
-            setZeroResidual(rawZeroResidual);
+            setZeroResidual(resForZero.value.vector);
         else
-            setOneResidual(rawOneResidual);
+            setOneResidual(resForOne.value.vector);
     }
 
     function selectArgument(item: DropDownElement): void {
         setRawArgument(item.key);
     }
 
-    console.log("RENDER TASK3")
-
     return (
-        <Limiter>
-            <View style={{flexDirection: "row"}}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите нулевую остаточную: </ThemeText>
+        <Limiter notScroll={true} styleMain={{height: height - defaultStyle.fontSize_title.headerHeight}}>
+            <View style={{flexDirection: "row", flexWrap: "wrap"}}>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите нулевую остаточную:  </ThemeText>
                 <ThemeInput
-                    style={{
-                        marginLeft: 15,
-                        flex: adaptiveLess(width, 0, {"478": 1}),
-                        width: adaptiveLess(width, null, {"478": 2})
-                    }}
+                    style={{width: adaptiveLess(width, null, {"900": "100%"})}}
                     value={zeroResidual} onInput={(r: string) => onResidualChange(r, true)} typeInput={"numeric"}
                     placeholder={"остаточная"}
                     fontSizeType={FontSizeTypes.normal}
                     notDeleteFirstZero={true}/>
             </View>
 
-            {errors.errorZeroResidual ? <View style={defaultStyle.marginTopSmall}>
+            {zeroResidualError ? <View style={defaultStyle.marginTopSmall}>
                 <ThemeText colorType={ColorTypes.error}
-                           fontSizeType={FontSizeTypes.error}>{errors.errorZeroResidual}</ThemeText>
+                           fontSizeType={FontSizeTypes.error}>{zeroResidualError}</ThemeText>
             </View> : null}
 
-            <View style={[{flexDirection: "row"}, defaultStyle.marginTopNormal]}>
-                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите единичную остаточную: </ThemeText>
+            <View style={[{flexDirection: "row", flexWrap: "wrap"}, defaultStyle.marginTopNormal]}>
+                <ThemeText fontSizeType={FontSizeTypes.normal}>Введите единичную остаточную:  </ThemeText>
                 <ThemeInput
-                    style={{
-                        marginLeft: 15,
-                        flex: adaptiveLess(width, 0, {"478": 1}),
-                        width: adaptiveLess(width, null, {"478": 2})
-                    }}
+                    style={{width: adaptiveLess(width, null, {"900": "100%"})}}
                     value={oneResidual} onInput={(r: string) => onResidualChange(r, false)} typeInput={"numeric"}
                     placeholder={"остаточная"}
                     fontSizeType={FontSizeTypes.normal}
                     notDeleteFirstZero={true}/>
             </View>
 
-            {errors.errorOneResidual ? <View style={defaultStyle.marginTopSmall}>
+            {oneResidualError ? <View style={defaultStyle.marginTopSmall}>
                 <ThemeText colorType={ColorTypes.error}
-                           fontSizeType={FontSizeTypes.error}>{errors.errorOneResidual}</ThemeText>
+                           fontSizeType={FontSizeTypes.error}>{oneResidualError}</ThemeText>
             </View> : null}
 
-            <View style={[defaultStyle.marginTopNormal, {flexDirection: "row", zIndex: 3}]}>
+            <View style={[defaultStyle.marginTopNormal, {flexDirection: "row", zIndex: 3, flexWrap: "wrap"}]}>
                 <ThemeText fontSizeType={FontSizeTypes.normal}>Выберите аргумент: </ThemeText>
                 <DropDown elements={refArguments.current} onSelect={selectArgument}
                           defaultValue={rawArgument ? refArguments.current.find((item) => item.key === rawArgument).value : null}
                           placeholder={"аргумент"}></DropDown>
             </View>
 
-            {zeroResidual && oneResidual && !errors.errorZeroResidual && !errors.errorOneResidual && rawArgument ?
+            {zeroResidual && oneResidual && !isOneResidualError.current && !isZeroResidualError.current && rawArgument ?
                 <>
                     <View style={defaultStyle.marginTopNormal}>
                         <ThemeText fontSizeType={FontSizeTypes.normal}>f = ({vector})</ThemeText>

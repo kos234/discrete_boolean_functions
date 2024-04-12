@@ -1,4 +1,4 @@
-import {useWindowDimensions, View} from "react-native";
+import {ScrollView, useWindowDimensions, View} from "react-native";
 import Limiter from "../components/Limiter";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import ThemeInput from "../components/ThemeInput";
@@ -11,20 +11,22 @@ import {
     drawTableBoolFunction,
     getMinDNFByMaxClass,
     getResidualIndexes,
-    getResidualInVector, UtilsReturn
+    getResidualInVector, getStringBooleanFormatByVector, UtilsReturn
 } from "../utils/boolsUtils";
 import {fastClearArray} from "../utils/useArrayState";
+import useErrorState from "../utils/useErrorState";
 
 export default function Task12() {
     const {height, width} = useWindowDimensions();
     const {colorScheme, defaultStyle} = useContext(AppContext);
     const [rawVector, setRawVector] = useState<string>("");
-    const [errorVector, setErrorVector] = useState(null);
+    const [vectorError, isVectorError, setVectorError] = useErrorState(null, 0);
+
     const [resMinDnf, setResMinDnf] = useState<UtilsReturn<ReactNode[]>>(null);
 
     function onVectorChange(value: string): void {
         const res = checkVectorCorrect(value);
-        setErrorVector(res.error);
+        setVectorError(res.error);
         if(!res.error){
             setResMinDnf(getMinDNFByMaxClass(res.value.vector, colorScheme));
         }
@@ -33,7 +35,7 @@ export default function Task12() {
     //0001110101011100
 
     return (
-        <Limiter>
+        <Limiter notScroll={true} styleMain={{height: height - defaultStyle.fontSize_title.headerHeight}}>
             <View style={{flexDirection: "row"}}>
                 <ThemeText fontSizeType={FontSizeTypes.normal}>Введите f: </ThemeText>
                 <ThemeInput
@@ -47,9 +49,9 @@ export default function Task12() {
                     notDeleteFirstZero={true}/>
             </View>
 
-            {errorVector ? <View style={defaultStyle.marginTopSmall}>
+            {vectorError ? <View style={defaultStyle.marginTopSmall}>
                 <ThemeText colorType={ColorTypes.error}
-                           fontSizeType={FontSizeTypes.error}>{errorVector}</ThemeText>
+                           fontSizeType={FontSizeTypes.error}>{vectorError}</ThemeText>
             </View> : null}
 
             {resMinDnf && resMinDnf.error ? <View style={defaultStyle.marginTopSmall}>
@@ -58,13 +60,15 @@ export default function Task12() {
             </View> : null}
 
 
-            {rawVector && !errorVector && resMinDnf && !resMinDnf.error ?
+            {rawVector && !isVectorError.current && resMinDnf && !resMinDnf.error ?
                 <>
-                    <View style={[defaultStyle.marginTopNormal, {flexDirection: "row"}]}>
+                    <View style={[defaultStyle.marginTopNormal, {flexDirection: adaptiveLess(width, 1, {"478": 0}) ? "row" : "column"}]}>
                         <ThemeText fontSizeType={FontSizeTypes.normal}>
-                            ДНФ&nbsp;=&nbsp;
+                            ДНФ =&nbsp;
                         </ThemeText>
-                        {resMinDnf.value}
+                        <ScrollView horizontal={true}>
+                            {resMinDnf.value}
+                        </ScrollView>
                     </View>
 
                     {drawTableBoolFunction(rawVector, defaultStyle, colorScheme)}
