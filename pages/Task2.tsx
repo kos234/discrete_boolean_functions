@@ -19,7 +19,8 @@ export default function Task2() {
     const [errorVector, isErrorVector, setErrorVector] = useErrorState(null);
     const refArguments = useRef<DropDownElement[]>([]);
     const refResiduals = useRef<DropDownElement[]>([{key: "0", value: "0"}, {key: "1", value: "1"}]);
-    const residualIndexes = useMemo<number[]>(() => getResidualIndexes(rawVector.length, parseInt(rawArgument), parseInt(rawResidual)),
+    const residualIndexes = useMemo<number[]>(() =>
+            getResidualIndexes(rawVector.length, parseInt(rawArgument), parseInt(rawResidual)),
         [rawVector, rawArgument, rawResidual]);
 
     function onVectorChange(value: string): void {

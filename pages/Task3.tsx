@@ -24,9 +24,12 @@ export default function Task3() {
     const [oneResidualError, isOneResidualError, setOneResidualError] = useErrorState(null);
     const [rawArgument, setRawArgument] = useState<string>("");
     const refArguments = useRef<DropDownElement[]>([]);
-    const residualIndexes = useMemo(() => getResidualIndexes(zeroResidual.length * 2, parseInt(rawArgument), 0),
+    const residualIndexes = useMemo(() =>
+            getResidualIndexes(zeroResidual.length * 2, parseInt(rawArgument), 0),
         [zeroResidual, oneResidual, rawArgument]);
-    const vector = useMemo(() => glueVectorOnResiduals(zeroResidual, oneResidual, residualIndexes), [zeroResidual, oneResidual, residualIndexes]);
+    const vector = useMemo(() =>
+        glueVectorOnResiduals(zeroResidual, oneResidual, residualIndexes)
+        , [zeroResidual, oneResidual, residualIndexes]);
 
     function onResidualChange(value: string, isZero: boolean = true): void {
         const resForZero = checkVectorCorrect(isZero ? value : zeroResidual);

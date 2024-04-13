@@ -62,7 +62,7 @@ export function getResidualInVector(vector: string, residualIndexes: number[]) {
 
 //Это функция для 3 задания, на вход нулевая остаточная, единичная остаточная и индексы нулевой остаточной, на выходе склеенная из двух остаточных функция
 export function glueVectorOnResiduals(zeroResidual: string, oneResidual: string, zeroResidualIndexes: number[]): string {
-    let ans = "";
+    let ans:string = "";
     let zeroCount = 0;
     let oneCount = 0;
     for (let i = 0; i < zeroResidual.length * 2; i++) {
@@ -84,10 +84,11 @@ export function getResidualIndexes(vectorLength: number, argument: number, resid
     т.е. для остаточной по первому аргументу будет 2 куска - 00|11, для второго аргумента будет 4 куса - 0|0|1|1 и тд
     Длина 1 куска это длина вектора / куски
     */
-    const chunkCount = 1 << argument;
+    const chunkCount = 1 << argument; //Math.pow(2, n);
     const chunkLength = Math.floor(vectorLength / chunkCount);
 
-    let ans = [];
+    //residual 0 или 1
+    let ans:number[] = [];
     for (let chunk = 0; chunk < chunkCount; chunk += 2) { //идём через кусок, т.к. нас интересует либо 0 либо 1 куски
         for (let index = 0; index < chunkLength; index++) {
             ans.push((chunk + residual) * chunkLength + index); //Индекс элемента в остаточной это (чанк + (0 или 1)) * длина + 1, (0 или 1) - это 0 либо 1 остаточная
@@ -617,7 +618,7 @@ export function drawTableBoolFunction(vector: string, defaultStyle: ReturnType<t
                             borderLeftWidth: 2,
                             borderLeftColor: colorScheme.textColor
                         }, addStyleToText(0, n), {width: 80}]}>
-                        <ThemeText fontSizeType={FontSizeTypes.normal} style={{textAlign: "center"}}>ДНФ</ThemeText>
+                        <ThemeText fontSizeType={FontSizeTypes.normal} style={{textAlign: "center"}}>{booleanFormat.mainOperation(true, false) ? "ДНФ" : "КНФ"}</ThemeText>
                     </TableColumn> : null
                 }
             </TableRow>
