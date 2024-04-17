@@ -60,7 +60,7 @@ export default function App() {
         return route.name;
     }
 
-    function sendTouchEndEvent():void {
+    function sendTouchEndEvent(): void {
         listenersTouchEnd.current.forEach(handler => {
             handler();
         })
@@ -98,7 +98,8 @@ export default function App() {
                     paddingLeft: Platform.OS === "web" ? 15 : 0,
                     paddingRight: Platform.OS === "web" ? 0 : 10,
                 }}>
-                    <View hitSlop={{top: 10, bottom: 10, left: 10, right: 10}} style={{justifyContent: "center", height: "100%"}}>
+                    <View hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                          style={{justifyContent: "center", height: "100%"}}>
                         <ArrowBack height={Platform.OS === "web" ? defaultStyle.fontSize_title.backIconSize : 24}
                                    width={Platform.OS === "web" ? defaultStyle.fontSize_title.backIconSize : 24}
                                    fill={colorScheme.textColor}></ArrowBack>
@@ -184,20 +185,19 @@ export default function App() {
                                      onStateChange={(state) => {
                                          setCurrentPage(getActiveRouteName(state));
                                      }}>
-                    {/*//@ts-ignore*/}
+                    {/*//@ts-ignore*!*/}
                     <Stack.Navigator screenOptions={screenOptions}>
                         <Stack.Screen name="main" component={HomePage}
                                       options={{title: "Булевы функции | Главная"}}/>
                         {Tasks.map((e, index) => (
                             //@ts-ignore
                             <Stack.Screen navigationKey={e.id} key={e.id} name={e.id} component={e.component}
-                                          options={{title: e.title + " | " + (index + 1)}}/>
-                        ))}
-                    </Stack.Navigator>
-                </NavigationContainer>
-            </KeyboardAvoidingView>
-        </AppContext.Provider>
-    )
-        ;
+                                     options={{title: e.title + " | " + (index + 1)}}/>
+                    ))}
+                </Stack.Navigator>
+            </NavigationContainer>
+        </KeyboardAvoidingView>
+</AppContext.Provider>
+)
 }
 const styles = StyleSheet.create({});
