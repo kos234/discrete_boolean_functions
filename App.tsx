@@ -27,6 +27,7 @@ import NonSelectPressable from "./components/NonSelectPressable";
 import {PartialState} from "@react-navigation/routers/lib/typescript/src/types";
 import {GestureResponderEvent} from "react-native/Libraries/Types/CoreEventTypes";
 import {getBackgroundColor} from "@expo/metro-runtime/build/error-overlay/UI/LogBoxStyle";
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 const Stack = createNativeStackNavigator();
 
@@ -175,29 +176,31 @@ export default function App() {
             subscribeTouchEnd: subscribeTouchEnd,
             unsubscribeTouchEnd: unsubscribeTouchEnd,
         }}>
-            <KeyboardAvoidingView onTouchStart={sendTouchEndEvent} behavior={"padding"}
-                                  style={{flex: 1, backgroundColor: colorScheme.backgroundColor}}>
-                <NavigationContainer linking={getLinking()}
-                                     ref={(e) => {
-                                         if (currentPage === "" && e)
-                                             setCurrentPage(getActiveRouteName(e.getState()));
-                                     }}
-                                     onStateChange={(state) => {
-                                         setCurrentPage(getActiveRouteName(state));
-                                     }}>
-                    {/*//@ts-ignore*!*/}
-                    <Stack.Navigator screenOptions={screenOptions}>
-                        <Stack.Screen name="main" component={HomePage}
-                                      options={{title: "Булевы функции | Главная"}}/>
-                        {Tasks.map((e, index) => (
-                            //@ts-ignore
-                            <Stack.Screen navigationKey={e.id} key={e.id} name={e.id} component={e.component}
-                                     options={{title: e.title + " | " + (index + 1)}}/>
-                    ))}
-                </Stack.Navigator>
-            </NavigationContainer>
-        </KeyboardAvoidingView>
-</AppContext.Provider>
-)
+            <GestureHandlerRootView style={{flex: 1}}>
+                <KeyboardAvoidingView onTouchStart={sendTouchEndEvent} behavior={"padding"}
+                                      style={{flex: 1, backgroundColor: colorScheme.backgroundColor}}>
+                    <NavigationContainer linking={getLinking()}
+                                         ref={(e) => {
+                                             if (currentPage === "" && e)
+                                                 setCurrentPage(getActiveRouteName(e.getState()));
+                                         }}
+                                         onStateChange={(state) => {
+                                             setCurrentPage(getActiveRouteName(state));
+                                         }}>
+                        {/*//@ts-ignore*!*/}
+                        <Stack.Navigator screenOptions={screenOptions}>
+                            <Stack.Screen name="main" component={HomePage}
+                                          options={{title: "Булевы функции | Главная"}}/>
+                            {Tasks.map((e, index) => (
+                                //@ts-ignore
+                                <Stack.Screen navigationKey={e.id} key={e.id} name={e.id} component={e.component}
+                                              options={{title: e.title + " | " + (index + 1)}}/>
+                            ))}
+                        </Stack.Navigator>
+                    </NavigationContainer>
+                </KeyboardAvoidingView>
+            </GestureHandlerRootView>
+        </AppContext.Provider>
+    )
 }
 const styles = StyleSheet.create({});

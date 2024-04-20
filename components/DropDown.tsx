@@ -1,11 +1,6 @@
 import {
-    Alert,
     Animated,
-    Easing,
-    FlatList,
-    InteractionManager, Platform,
-    ScrollView,
-    useWindowDimensions,
+    Easing, Platform,
     View
 } from "react-native";
 import {DefaultProps} from "../globalStyles";
@@ -16,9 +11,11 @@ import More from "../imgs/more.svg";
 import {useContext, useEffect, useMemo, useRef, useState} from "react";
 import {AppContext} from "../colors";
 import NonSelectPressable from "./NonSelectPressable";
+import {GestureHandlerRootView, ScrollView} from 'react-native-gesture-handler';
 //@ts-ignore
 import {AnimatedInterpolation} from "react-native/Libraries/Animated/Animated";
 import {GestureResponderEvent} from "react-native/Libraries/Types/CoreEventTypes";
+import {GestureDetector} from "react-native-gesture-handler";
 
 export type DropDownElement = {
     key: string,
@@ -36,6 +33,7 @@ export interface DropDownProps extends DefaultProps {
 export default function DropDown({elements, defaultValue, placeholder, isEdit, onSelect, style}: DropDownProps) {
     const isOpen = useRef(false);
     const ignoreClick = useRef(false);
+    const isScroll = useRef(false);
     const {colorScheme, defaultStyle, unsubscribeTouchEnd, subscribeTouchEnd} = useContext(AppContext);
 
     const refAnimations = useRef<{ animationHover: Animated.Value, interpolate: AnimatedInterpolation }[]>([])
@@ -62,6 +60,9 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
             ignoreClick.current = false;
             return
         }
+        if(isScroll.current)
+            return;
+
         if (isOpen.current)
             refCloseAfterClickAnywhere.current = setTimeout(() => {
                 clickOpen();
@@ -114,7 +115,7 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
     }
 
     return (
-        <View ref={parentNode} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}  style={[{
+        <View ref={parentNode} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}} style={[{
             borderBottomWidth: 1,
             borderColor: colorScheme.borderColor,
             width: 200,
@@ -122,7 +123,7 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
             zIndex: 3,
         }, style]}>
             <NonSelectPressable style={{flexDirection: "row", paddingLeft: 5, paddingRight: 5}} onPress={(item) => {
-                if(Platform.OS === "web")
+                if (Platform.OS === "web")
                     ignoreClick.current = true;
                 clearInterval(refCloseAfterClickAnywhere.current);
                 clickOpen();
@@ -146,7 +147,7 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                     </Animated.View>
                 </View>
             </NonSelectPressable>
-            <View>
+            <View style={{flex: 1}}>
                 <Animated.View style={{
                     overflow: "hidden",
                     position: "absolute",
@@ -158,43 +159,46 @@ export default function DropDown({elements, defaultValue, placeholder, isEdit, o
                     backgroundColor: colorScheme.backgroundColor,
                     zIndex: 4,
                     elevation: 4,
-                    maxHeight:300,
+                    maxHeight: 300,
                 }}>
                     <View style={{
                         borderWidth: 1,
+                        flex: 1,
                         borderRadius: 10,
                         borderColor: colorScheme.borderColor,
                         padding: 5,
                         flexGrow: 1,
                         maxHeight: 300
                     }}>
-
-                        <ScrollView style={{ maxHeight: 300, flexGrow: 1}}>
-                            {elements.map((value: DropDownElement, index: number) => (
-                                <NonSelectPressable onPress={() => {
-                                    onSelect(value);
-                                    clearInterval(refCloseAfterClickAnywhere.current);
-                                    clickOpen();
-                                    if(Platform.OS !== "web"){
-                                        hoverOnItem(index, 1);
-                                        setTimeout(() => {
-                                            hoverOnItem(index, 0);
-                                        }, 300);
-                                    }
-                                }} onHoverIn={(e) => hoverOnItem(index, 1)}
-                                                    onHoverOut={(e) => hoverOnItem(index, 0)} key={"key" + index} >
-                                     <Animated.View style={{
-                                         paddingTop: 5,
-                                         paddingBottom: 5,
-                                         paddingLeft: 15,
-                                         paddingRight: 15,
-                                         backgroundColor: refAnimations.current[index].interpolate,
-                                     }}>
-                                        <ThemeText key={"key" + index} fontSizeType={FontSizeTypes.normal}>{value.value}</ThemeText>
-                                     </Animated.View>
-                                 </NonSelectPressable>
-                            ))}
-                        </ScrollView>
+                            <ScrollView onTouchStart={() => {isScroll.current = true}} onTouchEnd={() => {isScroll.current = false}}>
+                                {elements.map((value: DropDownElement, index: number) => (
+                                    <NonSelectPressable
+                                        onPress={() => {
+                                        onSelect(value);
+                                        clearInterval(refCloseAfterClickAnywhere.current);
+                                        clickOpen();
+                                        if (Platform.OS !== "web") {
+                                            hoverOnItem(index, 1);
+                                            setTimeout(() => {
+                                                hoverOnItem(index, 0);
+                                            }, 300);
+                                        }
+                                    }} onHoverIn={(e) => hoverOnItem(index, 1)}
+                                                        onHoverOut={(e) => hoverOnItem(index, 0)} key={"key" + index}>
+                                        <Animated.View style={{
+                                            paddingTop: 5,
+                                            paddingBottom: 5,
+                                            paddingLeft: 15,
+                                            paddingRight: 15,
+                                            backgroundColor: refAnimations.current[index].interpolate,
+                                        }}>
+                                            <ThemeText key={"key" + index}
+                                                       fontSizeType={FontSizeTypes.normal}>{value.value}</ThemeText>
+                                        </Animated.View>
+                                    </NonSelectPressable>
+                                ))}
+                            </ScrollView>
+                        {/*</GestureDetector>*/}
                     </View>
                 </Animated.View>
             </View>

@@ -263,16 +263,16 @@ export function getValueINDNF(row: number, n: number, booleanFormat: BooleanForm
 }
 
 //Это 8 и 9 задание. На вход вектор, что мы получим днф или кнф и цветовая схема приложения(нужно для отрисовки)
-export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, colorScheme: typeof LightMode) {
+export function getStringBooleanFormatByVector(vector: string, isSDNF: boolean, colorScheme: typeof LightMode) {
     const fontSize = FontSizeTypes.normal;//Это бы удалить, но мне лень
     const ans: ReactNode[] = []
     const n = Math.log2(vector.length);
     for (let row = 0; row < vector.length; row++) {
-        if (vector[row] === "1") { //это проверка на то, что по текущему значению функции можно построить ДНФ или КНФ, иначе скип
-            if (!isDNF)
+        if (vector[row] === "1") { //это проверка на то, что по текущему значению функции можно построить СДНФ или СКНФ, иначе скип
+            if (!isSDNF)
                 continue;
         } else {
-            if (isDNF)
+            if (isSDNF)
                 continue;
 
             ans.push(<ThemeText fontSizeType={fontSize}>(</ThemeText>);
@@ -284,7 +284,7 @@ export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, c
             ans.push(
                 <View style={{position: "relative", flexDirection: "row"}}>
                     <ThemeText fontSizeType={fontSize}>x<ThemeText fontSizeType={FontSizeTypes.sub}>{(i + 1)}</ThemeText></ThemeText>
-                    {Math.floor((row / (1 << n - i - 1)) % 2) !== +isDNF ?
+                    {Math.floor((row / (1 << n - i - 1)) % 2) !== +isSDNF ?
                         <ThemeText fontSizeType={fontSize} style={{
                             position: "absolute",
                             backgroundColor: colorScheme.textColor,
@@ -296,12 +296,12 @@ export function getStringBooleanFormatByVector(vector: string, isDNF: boolean, c
                         : null}
                 </View>
             )
-            if (i + 1 !== n && !isDNF) {
+            if (i + 1 !== n && !isSDNF) {
                 ans.push(<ThemeText fontSizeType={fontSize}>V</ThemeText>)
             }
         }
 
-        if (isDNF) {
+        if (isSDNF) {
             ans.push(<ThemeText fontSizeType={fontSize}> V </ThemeText>);
         } else {
             ans.push(<ThemeText fontSizeType={fontSize}>)</ThemeText>);
@@ -340,7 +340,7 @@ export class ArgumentIndex {//Это класс с инструментами д
     }
 
     //Представить число как двоичный набор
-    public static toMatrixIndex(index: number, n: number): number[] {
+    public static toMatrixIndex(index: number, n: number):number[] {
         const ans: number[] = Array(n).fill(0);
 
         for (let write = n - 1; index !== 0; write--) {
