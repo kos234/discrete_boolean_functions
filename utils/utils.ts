@@ -82,3 +82,14 @@ export function fastParse0or1(value:string){
 }
 
 export type GetArrayReturnType<T, DefaultType> = T extends () => (infer U)[] ? U : DefaultType;
+
+export function equalSet<T>(a:Set<T>, b:IterableIterator<T>):boolean{
+    let iterCount = 0;
+    for(let value of b){
+        if(!a.has(value))
+            return false;
+        iterCount++;
+    }
+
+    return iterCount === a.size;
+}

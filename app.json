@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Boolean Functions",
-    "slug": "Boolean Functions",
+    "slug": "one",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "progs.kos.booleanfunctions"
+      "package": "progs.kos.functions.booleans"
     },
     "web": {
       "favicon": "./assets/favicon.png"

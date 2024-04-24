@@ -1,5 +1,5 @@
 import Table, {TableColumn, TableRow} from "../components/Table";
-import {fastParse0or1, forTo, GetArrayReturnType, getRandom, range} from "./utils";
+import {equalSet, fastParse0or1, forTo, GetArrayReturnType, getRandom, range} from "./utils";
 import ThemeText, {ColorTypes, FontSizeTypes} from "../components/ThemeText";
 import {FlatList, View} from "react-native";
 import {calculateDefaultStyle} from "../globalStyles";
@@ -120,9 +120,9 @@ export abstract class BooleanFormat { //Это класс оболочка дл�
 
     public abstract innerOperation(a: boolean, b: boolean): boolean;
 
-    public abstract getMainDefault(): boolean;
+    public abstract getMainNeutral(): boolean;
 
-    public abstract getInnerDefault(): boolean;
+    public abstract getInnerNeutral(): boolean;
 }
 
 export class DNF extends BooleanFormat {//Реализация ДНФ
@@ -134,11 +134,11 @@ export class DNF extends BooleanFormat {//Реализация ДНФ
         return a || b;
     }
 
-    public getInnerDefault(): boolean {
+    public getInnerNeutral(): boolean {
         return true;
     }
 
-    public getMainDefault(): boolean {
+    public getMainNeutral(): boolean {
         return false;
     }
 }
@@ -152,11 +152,11 @@ export class KNF extends BooleanFormat {//Реализация КНФ
         return a && b;
     }
 
-    public getInnerDefault(): boolean {
+    public getInnerNeutral(): boolean {
         return false;
     }
 
-    public getMainDefault(): boolean {
+    public getMainNeutral(): boolean {
         return true;
     }
 }
@@ -246,9 +246,9 @@ export function getValueINDNF(row: number, n: number, booleanFormat: BooleanForm
     if (booleanFormat.storage.length === 0)
         return 0;
 
-    let ans = booleanFormat.getMainDefault();
+    let ans = booleanFormat.getMainNeutral();
     for (let q = 0; q < booleanFormat.storage.length; q++) {//Идём по всем хранилищам ДНФ или КНФ
-        let currentAns = booleanFormat.getInnerDefault();
+        let currentAns = booleanFormat.getInnerNeutral();
         let currentDNF = booleanFormat.storage[q];
         for (let i = 0; i < n; i++) {//Тупо подставляем туда значения 0 или 1
             if (currentDNF[i + 1] == null)
@@ -462,12 +462,13 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
             res.error = "Функция никогда не равна 1, невозможно построить ДНФ!";
             break markerCalc;
         }
-
         while (true) { //Склеиваем все маски по это возможно
             const localSet: Set<string> = new Set<string>(Array.from(dataUsageMasks.keys()));//Добавим в сет сразу всё, чтобы если что-то не склеилось, то оно всё равно осталось
 
             for (let [value] of dataUsageMasks) {//Перебираем всё маски. [value] - тоже оператор Spread, кстати
+                console.log("search", value);
                 ArgumentIndex.getBigNeighbors(ArgumentIndex.parseString(value)).forEach(wrapper => {//Ищём соседей
+                    console.log("big neig", wrapper.value, "has", dataUsageMasks.has(wrapper.value.join("")));
                     if (dataUsageMasks.has(wrapper.value.join(""))) {//Проверка если ли такая маска
                         localSet.add([ //Склеиваем
                             ...wrapper.value.slice(0, wrapper.differentIndex),
@@ -480,11 +481,15 @@ export function getMinDNFByMaxClass(vector: string, colorScheme: typeof LightMod
                     }
                 });
             }
-            if (localSet.size !== dataUsageMasks.size) //Если что-то склеили то обновляем
+
+            console.log("localSet", localSet);
+            if(!equalSet(localSet, dataUsageMasks.keys()))//Если что-то склеили то обновляем
                 dataUsageMasks = new Map<string, number>(Array.from(localSet, (item) => [item, 0]));
             else //Иначе выходим
                 break;
         }
+
+        console.log("dataUsageMasks", dataUsageMasks);
 
         for (let [keyAns] of mapOnes) { //подсчитываем использование каждой маски
             for (let [value] of dataUsageMasks) { //Перебираем все наборы на которых функция возвращает 1
